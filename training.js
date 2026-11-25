@@ -253,6 +253,113 @@ const GYM = {
     ],
     coaching: "Rotational power equals harder shots and longer goalkeeper throws.",
   },
+
+  // Mobility / cool-down — bodyweight for every age and gym mode
+  hipflexor: {
+    icon: "🧘",
+    category: "Mobility",
+    muscles: "Hip flexors, quads (front of hip)",
+    holdSec: 30,
+    variants: { bw: "Hip Flexor Stretch", light: "Hip Flexor Stretch", loaded: "Hip Flexor Stretch" },
+    reps: { bw: "30 sec each side", light: "30 sec each side", loaded: "30 sec each side" },
+    steps: [
+      "Kneel on one knee with the other foot forward (like a lunge).",
+      "Tuck your back toes under or keep the foot flat — whichever feels stable.",
+      "Gently shift your hips forward until you feel a stretch in the front of the back hip.",
+      "Keep your torso tall; switch sides after the hold.",
+    ],
+    coaching: "Tight hip flexors from sitting and sprinting limit stride length. Ease in — never force pain.",
+  },
+  hamstringstretch: {
+    icon: "🧘",
+    category: "Mobility",
+    muscles: "Hamstrings, calves",
+    holdSec: 30,
+    variants: { bw: "Hamstring Stretch", light: "Hamstring Stretch", loaded: "Hamstring Stretch" },
+    reps: { bw: "30 sec each leg", light: "30 sec each leg", loaded: "30 sec each leg" },
+    steps: [
+      "Sit with one leg straight and the other bent, foot against the inner thigh.",
+      "Hinge forward from the hips with a flat back.",
+      "Reach toward the toes of the straight leg until you feel a mild stretch.",
+      "Breathe and hold, then switch legs.",
+    ],
+    coaching: "A gentle pull is good; sharp pain is not. Soften your knee slightly if your lower back rounds.",
+  },
+  quadstretch: {
+    icon: "🧘",
+    category: "Mobility",
+    muscles: "Quads, hip flexors",
+    holdSec: 30,
+    variants: { bw: "Standing Quad Stretch", light: "Standing Quad Stretch", loaded: "Standing Quad Stretch" },
+    reps: { bw: "30 sec each leg", light: "30 sec each leg", loaded: "30 sec each leg" },
+    steps: [
+      "Stand tall and hold a wall or teammate for balance.",
+      "Bend one knee and grab that ankle behind you.",
+      "Gently pull the heel toward your glute, knees close together.",
+      "Keep your hips tucked slightly under; switch sides.",
+    ],
+    coaching: "Helpful after shooting and sprint sessions. Don't yank the ankle — guide it in.",
+  },
+  calfstretch: {
+    icon: "🧘",
+    category: "Mobility",
+    muscles: "Calves, Achilles",
+    holdSec: 30,
+    variants: { bw: "Calf Stretch (wall)", light: "Calf Stretch (wall)", loaded: "Calf Stretch (wall)" },
+    reps: { bw: "30 sec each leg", light: "30 sec each leg", loaded: "30 sec each leg" },
+    steps: [
+      "Face a wall with hands on it at shoulder height.",
+      "Step one foot back, both feet pointing forward.",
+      "Press the back heel into the floor and lean in until you feel the calf stretch.",
+      "Keep the back knee straight for the upper calf, then soft for the lower calf; switch legs.",
+    ],
+    coaching: "Fresh calves recover better between match days and cut the chance of Achilles irritation.",
+  },
+  openbooks: {
+    icon: "📖",
+    category: "Mobility",
+    muscles: "Thoracic spine, chest, shoulders",
+    holdSec: 20,
+    variants: { bw: "Open Books (thoracic)", light: "Open Books (thoracic)", loaded: "Open Books (thoracic)" },
+    reps: { bw: "8 each side", light: "8 each side", loaded: "8 each side" },
+    steps: [
+      "Lie on your side with knees bent about 90° and stacked.",
+      "Arms straight in front of you, palms together.",
+      "Open the top arm like a book, following it with your eyes, until your upper back rotates.",
+      "Pause, return, and repeat; then switch sides.",
+    ],
+    coaching: "Opens the mid-back for better posture, goalkeeper throws, and turning to play forward.",
+  },
+  ninetyninety: {
+    icon: "🧘",
+    category: "Mobility",
+    muscles: "Hips (internal & external rotation)",
+    holdSec: 30,
+    variants: { bw: "90/90 Hip Stretch", light: "90/90 Hip Stretch", loaded: "90/90 Hip Stretch" },
+    reps: { bw: "30 sec each side", light: "30 sec each side", loaded: "30 sec each side" },
+    steps: [
+      "Sit on the floor with the front leg bent 90° in front and the back leg bent 90° behind.",
+      "Sit tall; lean gently toward the front shin if you want more stretch.",
+      "Breathe into the hips — both the front and back hip should feel a mild stretch.",
+      "Switch so the other leg is in front.",
+    ],
+    coaching: "Soccer demands lots of hip rotation for cutting and striking. Move slowly between sides.",
+  },
+  figure4: {
+    icon: "🧘",
+    category: "Mobility",
+    muscles: "Glutes, outer hips",
+    holdSec: 30,
+    variants: { bw: "Figure-4 Glute Stretch", light: "Figure-4 Glute Stretch", loaded: "Figure-4 Glute Stretch" },
+    reps: { bw: "30 sec each side", light: "30 sec each side", loaded: "30 sec each side" },
+    steps: [
+      "Lie on your back and cross one ankle over the opposite knee (figure-4 shape).",
+      "Reach behind the uncrossed thigh and gently pull it toward your chest.",
+      "Keep your head and shoulders relaxed on the floor.",
+      "Hold, then switch sides.",
+    ],
+    coaching: "Loosens the glutes after long runs and gym leg days. Stop if you feel pinching in the hip joint.",
+  },
 };
 
 const EQUIPMENT = {
@@ -280,15 +387,16 @@ const GYM_NEEDS = {
   medball: { light: [["medball"]], loaded: [["medball"]] },
 };
 
+// Strength / power first; Mobility entries at the end are the cool-down stretch block.
 const POSITION_GYM = {
-  gk: ["boxjump", "lateralbound", "squat", "medball", "row", "plank"],
-  cb: ["squat", "rdl", "nordic", "copenhagen", "row", "boxjump"],
-  fb: ["lateralbound", "nordic", "lunge", "copenhagen", "calfraise", "plank"],
-  cdm: ["squat", "copenhagen", "row", "plank", "rdl", "lunge"],
-  cm: ["lunge", "nordic", "calfraise", "plank", "broadjump", "row"],
-  cam: ["broadjump", "lateralbound", "copenhagen", "plank", "lunge", "medball"],
-  wing: ["broadjump", "nordic", "lateralbound", "calfraise", "rdl", "plank"],
-  st: ["squat", "boxjump", "nordic", "pushup", "medball", "copenhagen"],
+  gk: ["boxjump", "lateralbound", "squat", "medball", "row", "plank", "hipflexor", "openbooks", "ninetyninety"],
+  cb: ["squat", "rdl", "nordic", "copenhagen", "row", "boxjump", "hamstringstretch", "hipflexor", "quadstretch"],
+  fb: ["lateralbound", "nordic", "lunge", "copenhagen", "calfraise", "plank", "calfstretch", "hipflexor", "hamstringstretch"],
+  cdm: ["squat", "copenhagen", "row", "plank", "rdl", "lunge", "hipflexor", "ninetyninety", "figure4"],
+  cm: ["lunge", "nordic", "calfraise", "plank", "broadjump", "row", "hamstringstretch", "quadstretch", "openbooks"],
+  cam: ["broadjump", "lateralbound", "copenhagen", "plank", "lunge", "medball", "hipflexor", "ninetyninety", "openbooks"],
+  wing: ["broadjump", "nordic", "lateralbound", "calfraise", "rdl", "plank", "calfstretch", "hamstringstretch", "hipflexor"],
+  st: ["squat", "boxjump", "nordic", "pushup", "medball", "copenhagen", "quadstretch", "hipflexor", "hamstringstretch"],
 };
 
 const PATHWAY = [

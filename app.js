@@ -240,17 +240,23 @@ function buildItems(pos, week, idx) {
     return POSITION_GYM[pos].map((id) => {
       const g = GYM[id];
       const { mode, name, reps } = pickVariant(id);
+      const isStretch = g.category === "Mobility";
+      const stretchSets = Math.min(sets, 2);
       return {
         title: name,
         category: g.category,
-        tags: [`${sets} sets × ${reps}`, `Rest ${GYM_REST[mode]}s`, GYM_MODE_LABEL[mode]],
-        setup: `Works: ${g.muscles}. Warm up for 5–10 minutes before your first set.`,
+        tags: isStretch
+          ? [`${stretchSets} × ${reps}`, "Cool-down", "Bodyweight"]
+          : [`${sets} sets × ${reps}`, `Rest ${GYM_REST[mode]}s`, GYM_MODE_LABEL[mode]],
+        setup: isStretch
+          ? `Works: ${g.muscles}. Move slowly, breathe, and never bounce into a stretch.`
+          : `Works: ${g.muscles}. Warm up for 5–10 minutes before your first set.`,
         steps: g.steps,
         coaching: g.coaching,
-        warning: gymNote(mode),
-        visual: `<div class="gym-visual"><div class="big">${g.icon}</div><div>${g.muscles}</div></div>`,
-        timerSec: GYM_REST[mode],
-        timerLabel: "rest timer",
+        warning: isStretch ? "" : gymNote(mode),
+        visual: `<div class="gym-visual${isStretch ? " stretch" : ""}"><div class="big">${g.icon}</div><div>${g.muscles}</div></div>`,
+        timerSec: isStretch ? (g.holdSec || 30) : GYM_REST[mode],
+        timerLabel: isStretch ? "hold timer" : "rest timer",
       };
     });
   }
@@ -276,7 +282,12 @@ function buildItems(pos, week, idx) {
 
 function sessionMinutes(pos, week, idx) {
   const group = ageGroup();
-  if (idx === "gym") return Math.round(POSITION_GYM[pos].length * group.sets[week] * 1.5 + 10);
+  if (idx === "gym") {
+    const ids = POSITION_GYM[pos];
+    const strengthN = ids.filter((id) => GYM[id].category !== "Mobility").length;
+    const stretchN = ids.length - strengthN;
+    return Math.round(strengthN * group.sets[week] * 1.5 + stretchN * Math.min(group.sets[week], 2) + 10);
+  }
   return fieldDrills(pos, idx)
     .reduce((sum, id) => sum + Math.round(DRILLS[id].minutes * group.volume), 0);
 }
@@ -397,7 +408,10 @@ function buildTodayPlan(date = new Date()) {
     return {
       icon: "✅", title: "Done for today",
       reasons: ["You've already finished a session today."],
-      todo: ["Stretch for 10 minutes.", "Eat well and aim for 8–10 hours of sleep."],
+      todo: [
+        "Stretch for 10 minutes (see the cool-down Mobility work in <a href=\"#/gym\">Gym</a>).",
+        "Eat well and aim for quality sleep — tips on the <a href=\"#/recovery\">Recovery</a> page.",
+      ],
     };
   }
 
@@ -410,6 +424,7 @@ function buildTodayPlan(date = new Date()) {
         "10–15 minutes of stretching or foam rolling.",
         "Extra sleep and plenty of water.",
         "No hard training. Your body rebuilds today.",
+        `Read the <a href="#/recovery">Recovery guide</a> for sleep, nutrition, and cold-water tips.`,
       ],
     };
   }
@@ -430,7 +445,11 @@ function buildTodayPlan(date = new Date()) {
     return {
       icon: "🛌", title: "Rest day",
       reasons: [`You've reached ${load} of your ${group.maxPerWeek} recommended sessions this week for age group ${group.label}.`],
-      todo: ["Rest is when you get stronger. Take the day off.", "Light stretching or a walk is fine."],
+      todo: [
+        "Rest is when you get stronger. Take the day off.",
+        "Light stretching or a walk is fine.",
+        `More ideas on the <a href="#/recovery">Recovery</a> page.`,
+      ],
     };
   }
 
@@ -533,6 +552,7 @@ function viewToday() {
   const profile = getProfile();
   const country = COUNTRIES[profile.country];
   const phase = seasonPhase(profile);
+  const plan = buildTodayPlan();
   const missing = [
     !country && "country",
     !getAge() && "age",
@@ -547,7 +567,8 @@ function viewToday() {
     ${missing.length ? `
       <div class="coach warn">Add your <strong>${missing.join(", ")}</strong> to
         <a href="#/profile">your profile</a> for a more accurate plan.</div>` : ""}
-    ${todayCardHtml(buildTodayPlan())}
+    ${todayCardHtml(plan)}
+    ${todayMealsHtml(plan)}
 
     <div class="grid" style="margin-top:16px">
       <div class="card">
@@ -968,15 +989,60 @@ function viewSession(pos, week, idx) {
   render();
 }
 
+function viewRecovery() {
+  const age = getAge();
+  const sleep = recoverySleepForAge(age);
+  const iceRelevant = !age || age >= 16;
+
+  app.innerHTML = `
+    <h1>💤 Recovery</h1>
+    <p>Training breaks you down a little; recovery builds you back stronger. Use these habits after sessions and on rest days.
+      ${age ? `Tips below are tuned for age <strong>${age}</strong> (${ageGroup().label}).` : `<a href="#/profile">Set your age</a> for sleep and cold-water guidance that matches you.`}
+      This is common sports guidance — not medical advice.</p>
+
+    <div class="card recovery-highlight">
+      <h3>😴 Sleep target for you</h3>
+      <p><strong>${sleep.hours}</strong> most nights. ${sleep.nap}</p>
+    </div>
+
+    <div class="grid recovery-grid">
+      ${RECOVERY_METHODS.map((m) => {
+        const ageTip = m.ageNote
+          ? `<p class="recovery-age"><strong>For you:</strong> aim for ${sleep.hours}. ${sleep.nap}</p>`
+          : m.minAgeHint
+            ? iceRelevant
+              ? `<p class="recovery-age"><strong>Age note:</strong> more relevant from about ${m.minAgeHint}+ with adult supervision.</p>`
+              : `<p class="recovery-age"><strong>Age note:</strong> under ${m.minAgeHint}? Skip ice baths — use active recovery, sleep, and contrast showers instead.</p>`
+            : "";
+        return `
+          <div class="card recovery-card" id="recovery-${m.id}">
+            <div class="icon">${m.icon}</div>
+            <h3>${m.title}</h3>
+            <p>${m.summary}</p>
+            ${ageTip}
+            <ul class="todo">${m.tips.map((t) => `<li>${t}</li>`).join("")}</ul>
+            ${m.caution ? `<div class="coach warn">⚠️ ${m.caution}</div>` : ""}
+          </div>`;
+      }).join("")}
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <h3>After today's session</h3>
+      <p>Light jog or walk → Mobility stretches in the <a href="#/gym">Gym library</a> → snack + water → early night.
+        Match-day or rest-day plans also live on <a href="#/today">Today</a>.</p>
+    </div>`;
+}
+
 function viewSessionComplete(pos, week, sessionName) {
   const p = POSITIONS[pos];
   const over = sessionsThisWeek() >= ageGroup().maxPerWeek;
   app.innerHTML = `
     <section class="hero">
       <h1>Session complete! 🎉</h1>
-      <p>Week ${week + 1} ${sessionName} of the ${p.name} program is done. Cool down with 5 minutes of light jogging and stretching.</p>
+      <p>Week ${week + 1} ${sessionName} of the ${p.name} program is done. Cool down with 5 minutes of light jogging and stretching, then refuel and rest.</p>
       <div class="btn-row">
         <a class="btn" href="#/position/${pos}">Back to program</a>
+        <a class="btn secondary" href="#/recovery">Recovery tips</a>
         <a class="btn secondary" href="#/progress">View progress</a>
       </div>
     </section>
@@ -1033,6 +1099,22 @@ function viewDrill(id) {
     </div>`;
 }
 
+function gymCardHtml(id, g) {
+  const v = pickVariant(id);
+  return `
+    <div class="card">
+      <div class="icon">${g.icon}</div>
+      <h3>${v.name}</h3>
+      <span class="tag">${g.category}</span><span class="tag">${v.reps}</span>
+      <p>${g.muscles}</p>
+      <details>
+        <summary>How to do it</summary>
+        <ol class="steps">${g.steps.map((s) => `<li>${s}</li>`).join("")}</ol>
+        <p><em>${g.coaching}</em></p>
+      </details>
+    </div>`;
+}
+
 function viewGym() {
   const age = getAge();
   const mode = gymMode();
@@ -1041,31 +1123,22 @@ function viewGym() {
     ? `<p>Your <strong>${POSITIONS[pos].name}</strong> gym plan: ${POSITION_GYM[pos].map((g) => pickVariant(g).name).join(" · ")}.
         <a href="#/position/${pos}">Go to program →</a></p>`
     : `<p><a href="#/pick">Pick your position</a> to get a position-specific gym plan.</p>`;
+  const strength = Object.entries(GYM).filter(([, g]) => g.category !== "Mobility");
+  const mobility = Object.entries(GYM).filter(([, g]) => g.category === "Mobility");
 
   app.innerHTML = `
     <h1>🏋️ Gym Library</h1>
-    <p>Strength, power and injury-prevention work. Exercises adjust to your age, supervision and equipment:
-      ${age ? `you're on <strong>${GYM_MODE_LABEL[mode]}</strong>.` : `<a href="#/age">set your age</a> to tailor them.`}</p>
+    <p>Strength, power, injury-prevention, and cool-down stretching. Strength work adjusts to your age, supervision and equipment:
+      ${age ? `you're on <strong>${GYM_MODE_LABEL[mode]}</strong>.` : `<a href="#/age">set your age</a> to tailor them.`}
+      Mobility stretches are bodyweight for every age.</p>
     <div class="card">${gymSetupSummary()}</div>
     <div class="coach warn">⚠️ ${gymNote(mode)}</div>
     ${plan}
-    <div class="grid">
-      ${Object.entries(GYM).map(([id, g]) => {
-        const v = pickVariant(id);
-        return `
-        <div class="card">
-          <div class="icon">${g.icon}</div>
-          <h3>${v.name}</h3>
-          <span class="tag">${g.category}</span><span class="tag">${v.reps} reps</span>
-          <p>${g.muscles}</p>
-          <details>
-            <summary>How to do it</summary>
-            <ol class="steps">${g.steps.map((s) => `<li>${s}</li>`).join("")}</ol>
-            <p><em>${g.coaching}</em></p>
-          </details>
-        </div>`;
-      }).join("")}
-    </div>`;
+    <h2>Strength & power</h2>
+    <div class="grid">${strength.map(([id, g]) => gymCardHtml(id, g)).join("")}</div>
+    <h2>Mobility & stretching (cool-down)</h2>
+    <p class="muted">Use these after gym or field sessions. Hold gently — never bounce or force pain.</p>
+    <div class="grid">${mobility.map(([id, g]) => gymCardHtml(id, g)).join("")}</div>`;
 }
 
 function viewGymSetup(pos, week, idx) {
@@ -1227,6 +1300,7 @@ function router() {
     drill: viewDrill,
     gym: viewGym,
     "gym-setup": viewGymSetup,
+    recovery: viewRecovery,
     pathway: viewPathway,
     age: viewAge,
     today: viewToday,

@@ -281,7 +281,25 @@ button.card.pick.current { border-color: var(--accent); }
   font-weight: 600;
   gap: 8px;
 }
+.gym-visual.stretch {
+  background: linear-gradient(135deg, #2e5c45, #1b7f3b);
+}
 .gym-visual .big { font-size: 5rem; }
+
+.recovery-highlight {
+  margin: 16px 0 8px;
+  border-left: 5px solid var(--accent);
+}
+.recovery-grid { margin-top: 12px; }
+.recovery-card .todo { margin: 8px 0 0; }
+.recovery-age {
+  font-size: 0.95rem;
+  color: var(--green-dark);
+  background: var(--green-light);
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+.recovery-card .coach.warn { margin-top: 12px; }
 
 .session.gym { border-left: 5px solid #455a64; }
 .session.gym.done { background: var(--green-light); }
