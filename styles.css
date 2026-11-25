@@ -208,6 +208,10 @@ button.card.pick.current { border-color: var(--accent); }
   width: 100%;
   aspect-ratio: 4 / 3;
 }
+.diagram-legend {
+  margin: 8px 0 0;
+  color: var(--muted);
+}
 .timer {
   font-size: 3rem;
   font-weight: 800;

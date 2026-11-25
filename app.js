@@ -267,7 +267,7 @@ function buildItems(pos, week, idx) {
       steps: d.steps,
       coaching: d.coaching,
       warning: id === "heading" && headingRule() === "limited" ? HEADING_TEXT.limited : "",
-      visual: `${drillDiagram(d)}<p><small>🔵 = you &nbsp; 🔶 = cones &nbsp; dashed line = your path</small></p>`,
+      visual: `${drillDiagram(d)}${diagramLegend()}`,
       timerSec: Math.round(d.minutes * group.volume) * 60,
       timerLabel: "drill timer",
     };
@@ -281,27 +281,49 @@ function sessionMinutes(pos, week, idx) {
     .reduce((sum, id) => sum + Math.round(DRILLS[id].minutes * group.volume), 0);
 }
 
-function drillDiagram(drill) {
+let diagramUid = 0;
+
+function diagramLegend() {
+  return `<p class="diagram-legend"><small>🔵 blue dot shows the movement &nbsp; 🔶 = cones &nbsp; dashed line = your path</small></p>`;
+}
+
+function drillDiagram(drill, animate = true) {
+  const uid = ++diagramUid;
   const cones = drill.cones
     .map(([x, y]) => `<polygon points="${x},${y - 3} ${x - 2.5},${y + 2} ${x + 2.5},${y + 2}" fill="#ff8a00" stroke="#c55f00" stroke-width="0.4"/>`)
     .join("");
-  const path = drill.path.map(([x, y]) => `${x},${y}`).join(" ");
+  const points = drill.path.map(([x, y]) => `${x},${y}`).join(" ");
+  const motionPath = `M${drill.path.map(([x, y]) => `${x},${y}`).join(" L")}`;
   const [sx, sy] = drill.path[0];
+  const length = drill.path.slice(1).reduce((sum, [x, y], i) => sum + Math.hypot(x - drill.path[i][0], y - drill.path[i][1]), 0);
+  const canAnimate = animate && drill.path.length > 1 && length > 0.5;
+  const dur = Math.max(2.5, Math.min(8, length / 18)).toFixed(1);
+  const runner = canAnimate
+    ? `<g>
+        <circle r="2.6" fill="#1d4ed8" stroke="#fff" stroke-width="0.6"/>
+        <circle r="1.2" cx="2.4" cy="1.6" fill="#fff" stroke="#222" stroke-width="0.3"/>
+        <animateMotion dur="${dur}s" repeatCount="indefinite" calcMode="linear" path="${motionPath}"/>
+      </g>`
+    : `<circle cx="${sx}" cy="${sy}" r="2.6" fill="#1d4ed8" stroke="#fff" stroke-width="0.6"/>`;
+  const startGhost = canAnimate
+    ? `<circle cx="${sx}" cy="${sy}" r="2.6" fill="#1d4ed8" stroke="#fff" stroke-width="0.6" opacity="0.3"/>`
+    : "";
   const goal = drill.goal
     ? `<rect x="35" y="1" width="30" height="5" fill="none" stroke="#fff" stroke-width="0.8"/>`
     : "";
   return `
-    <svg class="pitch" viewBox="0 0 100 75" role="img" aria-label="Drill diagram for ${drill.name}">
+    <svg class="pitch" viewBox="0 0 100 75" role="img" aria-label="Animated drill diagram for ${drill.name}">
       <defs>
-        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto">
+        <marker id="arrow-${uid}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto">
           <path d="M0,0 L10,5 L0,10 z" fill="#fff"/>
         </marker>
       </defs>
       <rect x="1" y="1" width="98" height="73" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="0.5"/>
       ${goal}
-      <polyline points="${path}" fill="none" stroke="#fff" stroke-width="0.8" stroke-dasharray="2 1.5" marker-end="url(#arrow)"/>
+      <polyline points="${points}" fill="none" stroke="#fff" stroke-width="0.8" stroke-dasharray="2 1.5" marker-end="url(#arrow-${uid})"/>
       ${cones}
-      <circle cx="${sx}" cy="${sy}" r="2.6" fill="#1d4ed8" stroke="#fff" stroke-width="0.6"/>
+      ${startGhost}
+      ${runner}
     </svg>`;
 }
 
@@ -966,6 +988,7 @@ function viewDrills(filter = "All") {
   const list = Object.entries(DRILLS).filter(([, d]) => filter === "All" || d.category === filter);
   app.innerHTML = `
     <h1>Drill Library</h1>
+    <p class="diagram-legend"><small>Blue dot on each diagram loops along the drill path.</small></p>
     <div class="filters">
       ${categories.map((c) => `<button class="${c === filter ? "active" : ""}" data-c="${c}">${c}</button>`).join("")}
     </div>
@@ -996,7 +1019,10 @@ function viewDrill(id) {
     <span class="tag">${d.category}</span><span class="tag">${d.minutes} min</span>
     <span class="tag">Equipment: ${d.equipment}</span>
     <div class="runner" style="margin-top:16px">
-      ${drillDiagram(d)}
+      <div>
+        ${drillDiagram(d)}
+        ${diagramLegend()}
+      </div>
       <div class="card">
         <p><strong>Setup:</strong> ${d.setup}</p>
         <ol class="steps">${d.steps.map((s) => `<li>${s}</li>`).join("")}</ol>
