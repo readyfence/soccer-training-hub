@@ -297,6 +297,7 @@ button.card.pick.current { border-color: var(--accent); }
 #gymSetup .hint { margin-top: 10px; }
 .choice input { width: 18px; height: 18px; accent-color: var(--green); }
 
+.date-line { font-size: 1.2rem; font-weight: 700; color: var(--green-dark); margin-top: -10px; }
 .today { margin-top: 20px; border-top: 5px solid var(--accent); }
 .today-head { display: flex; align-items: center; gap: 16px; }
 .today-head h2 { margin: 0; }

@@ -426,7 +426,7 @@ function todayCardHtml(plan) {
       <div class="today-head">
         <div class="big">${plan.icon}</div>
         <div>
-          <p class="stepper">${DAY_NAMES[new Date().getDay()]}'s plan</p>
+          <p class="stepper">📅 ${fullDate()}</p>
           <h2>${plan.title}</h2>
           ${plan.detail ? `<p class="muted">${plan.detail}</p>` : ""}
         </div>
@@ -490,6 +490,7 @@ function viewToday() {
 
   app.innerHTML = `
     <h1>📅 Today</h1>
+    <p class="date-line">${fullDate()}</p>
     ${missing.length ? `
       <div class="coach warn">Add your <strong>${missing.join(", ")}</strong> to
         <a href="#/profile">your profile</a> for a more accurate plan.</div>` : ""}
@@ -1099,6 +1100,10 @@ function viewProgress() {
 
 function viewNotFound() {
   app.innerHTML = `<h1>Page not found</h1><a href="#/">Go home</a>`;
+}
+
+function fullDate(date = new Date()) {
+  return date.toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 }
 
 function fmt(sec) {
