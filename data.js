@@ -305,26 +305,81 @@ const POSITIONS = {
       ["warmup", "box", "gkfootwork", "firsttouch"],
     ],
   },
-  cb: {
-    name: "Center Back",
+  sweeper: {
+    name: "Sweeper",
+    icon: "🧹",
+    summary: "Reads danger early, sweeps up behind the line, and starts attacks with composure.",
+    traits: ["Scanning", "Recovery pace", "Distribution", "Anticipation"],
+    sessions: [
+      ["warmup", "shuffle", "scanning"],
+      ["warmup", "distribution", "box", "firsttouch"],
+      ["warmup", "sprints", "gate", "heading"],
+    ],
+  },
+  lcb: {
+    name: "Left Center Back",
     icon: "🛡️",
-    summary: "Reads the game, wins headers, and organizes the back line.",
-    traits: ["Strength", "Heading", "Tackling", "Composure"],
+    summary: "Anchors the left side of the back line: wins duels, organizes, and builds from deep.",
+    traits: ["Strength", "Heading", "Tackling", "Left-side coverage"],
     sessions: [
       ["warmup", "shuffle", "heading"],
       ["warmup", "gate", "distribution", "tbox"],
       ["warmup", "oneVone", "box", "heading"],
     ],
   },
-  fb: {
-    name: "Full Back / Wing Back",
+  rcb: {
+    name: "Right Center Back",
+    icon: "🛡️",
+    summary: "Anchors the right side of the back line: wins duels, organizes, and builds from deep.",
+    traits: ["Strength", "Heading", "Tackling", "Right-side coverage"],
+    sessions: [
+      ["warmup", "shuffle", "heading"],
+      ["warmup", "distribution", "gate", "tbox"],
+      ["warmup", "oneVone", "box", "heading"],
+    ],
+  },
+  lwb: {
+    name: "Left Wing-Back",
+    icon: "🦅",
+    summary: "High and wide on the left: overlaps, crosses, then recovers to defend.",
+    traits: ["Stamina", "Crossing", "Overlaps", "Recovery sprints"],
+    sessions: [
+      ["warmup", "sprints", "crossing"],
+      ["warmup", "zigzag", "overlap"],
+      ["warmup", "shuffle", "oneVone", "sprints"],
+    ],
+  },
+  rwb: {
+    name: "Right Wing-Back",
+    icon: "🦅",
+    summary: "High and wide on the right: overlaps, crosses, then recovers to defend.",
+    traits: ["Stamina", "Crossing", "Overlaps", "Recovery sprints"],
+    sessions: [
+      ["warmup", "sprints", "crossing"],
+      ["warmup", "overlap", "zigzag"],
+      ["warmup", "oneVone", "shuffle", "sprints"],
+    ],
+  },
+  lb: {
+    name: "Left Back",
     icon: "🏃",
-    summary: "Defends wide and overlaps to deliver crosses. Needs a big engine.",
-    traits: ["Stamina", "Speed", "Crossing", "1v1 defending"],
+    summary: "Defends the left flank and joins attacks with overlapping runs when safe.",
+    traits: ["1v1 defending", "Stamina", "Crossing", "Positioning"],
     sessions: [
       ["warmup", "shuffle", "sprints"],
       ["warmup", "crossing", "zigzag"],
       ["warmup", "oneVone", "gate", "sprints"],
+    ],
+  },
+  rb: {
+    name: "Right Back",
+    icon: "🏃",
+    summary: "Defends the right flank and joins attacks with overlapping runs when safe.",
+    traits: ["1v1 defending", "Stamina", "Crossing", "Positioning"],
+    sessions: [
+      ["warmup", "shuffle", "sprints"],
+      ["warmup", "zigzag", "crossing"],
+      ["warmup", "gate", "oneVone", "sprints"],
     ],
   },
   cdm: {
@@ -338,15 +393,59 @@ const POSITIONS = {
       ["warmup", "distribution", "oneVone"],
     ],
   },
+  lcm: {
+    name: "Left Central Midfielder",
+    icon: "🔄",
+    summary: "Links left-sided play: receives half-turned, progresses the ball, and supports both boxes.",
+    traits: ["Vision", "Passing", "Stamina", "Half-space play"],
+    sessions: [
+      ["warmup", "gate", "scanning"],
+      ["warmup", "firsttouch", "sprints", "turning"],
+      ["warmup", "distribution", "slalom", "finishing"],
+    ],
+  },
+  rcm: {
+    name: "Right Central Midfielder",
+    icon: "🔄",
+    summary: "Links right-sided play: receives half-turned, progresses the ball, and supports both boxes.",
+    traits: ["Vision", "Passing", "Stamina", "Half-space play"],
+    sessions: [
+      ["warmup", "scanning", "gate"],
+      ["warmup", "sprints", "firsttouch", "turning"],
+      ["warmup", "slalom", "distribution", "finishing"],
+    ],
+  },
   cm: {
     name: "Central Midfielder",
     icon: "🔄",
-    summary: "Box-to-box engine who links defense and attack.",
+    summary: "Box-to-box engine who links defense and attack through the middle.",
     traits: ["Vision", "Passing range", "Stamina", "Ball control"],
     sessions: [
       ["warmup", "gate", "turning"],
       ["warmup", "firsttouch", "sprints"],
       ["warmup", "distribution", "slalom", "finishing"],
+    ],
+  },
+  lmid: {
+    name: "Left Midfielder",
+    icon: "➡️",
+    summary: "Wide left midfielder who stretches the pitch, combines, and delivers from the flank.",
+    traits: ["Wide passing", "Crossing", "Work rate", "Link play"],
+    sessions: [
+      ["warmup", "gate", "crossing"],
+      ["warmup", "slalom", "firsttouch"],
+      ["warmup", "sprints", "zigzag", "finishing"],
+    ],
+  },
+  rmid: {
+    name: "Right Midfielder",
+    icon: "⬅️",
+    summary: "Wide right midfielder who stretches the pitch, combines, and delivers from the flank.",
+    traits: ["Wide passing", "Crossing", "Work rate", "Link play"],
+    sessions: [
+      ["warmup", "crossing", "gate"],
+      ["warmup", "firsttouch", "slalom"],
+      ["warmup", "zigzag", "sprints", "finishing"],
     ],
   },
   cam: {
@@ -360,15 +459,48 @@ const POSITIONS = {
       ["warmup", "zigzag", "gate", "oneVone"],
     ],
   },
-  wing: {
-    name: "Winger",
+  lw: {
+    name: "Left Winger",
     icon: "⚡",
-    summary: "Beats defenders 1v1 and delivers from wide areas.",
+    summary: "Beats defenders on the left and delivers or cuts inside to finish.",
     traits: ["Pace", "Dribbling", "Crossing", "Cutting inside"],
     sessions: [
       ["warmup", "slalom", "crossing"],
       ["warmup", "zigzag", "oneVone"],
       ["warmup", "sprints", "finishing", "turning"],
+    ],
+  },
+  rw: {
+    name: "Right Winger",
+    icon: "⚡",
+    summary: "Beats defenders on the right and delivers or cuts inside to finish.",
+    traits: ["Pace", "Dribbling", "Crossing", "Cutting inside"],
+    sessions: [
+      ["warmup", "crossing", "slalom"],
+      ["warmup", "oneVone", "zigzag"],
+      ["warmup", "finishing", "sprints", "turning"],
+    ],
+  },
+  ss: {
+    name: "Second Striker",
+    icon: "✨",
+    summary: "Plays off the main striker: turns, links, and finishes from the second wave.",
+    traits: ["Through balls", "Turning", "Finishing", "Link play"],
+    sessions: [
+      ["warmup", "turning", "throughball"],
+      ["warmup", "firsttouch", "finishing"],
+      ["warmup", "slalom", "oneVone", "finishing"],
+    ],
+  },
+  cf: {
+    name: "Center Forward",
+    icon: "🎯",
+    summary: "Central focal point: hold-up, poaching, and finishing inside the box.",
+    traits: ["Finishing", "Hold-up play", "Poaching", "Aerial presence"],
+    sessions: [
+      ["warmup", "finishing", "holdup"],
+      ["warmup", "poacher", "heading", "firsttouch"],
+      ["warmup", "oneVone", "sprints", "finishing"],
     ],
   },
   st: {
@@ -384,33 +516,40 @@ const POSITIONS = {
   },
 };
 
+// Old saved ids map to the expanded set (see migrateSavedPosition in app.js).
+const POSITION_ALIASES = {
+  cb: "lcb",
+  fb: "lb",
+  wing: "lw",
+};
+
 // Each answer awards points to positions.
 const QUIZ = [
   {
     q: "What do you enjoy most in a game?",
     a: [
-      { t: "Scoring goals", p: { st: 3, wing: 1, cam: 1 } },
-      { t: "Making the perfect pass", p: { cam: 3, cm: 2 } },
-      { t: "Winning tackles and stopping attacks", p: { cb: 3, cdm: 2, fb: 1 } },
+      { t: "Scoring goals", p: { st: 3, cf: 2, ss: 2, lw: 1, rw: 1, cam: 1 } },
+      { t: "Making the perfect pass", p: { cam: 3, cm: 2, lcm: 1, rcm: 1, ss: 1 } },
+      { t: "Winning tackles and stopping attacks", p: { lcb: 2, rcb: 2, sweeper: 2, cdm: 2, lb: 1, rb: 1 } },
       { t: "Making saves", p: { gk: 5 } },
     ],
   },
   {
     q: "What's your biggest physical strength?",
     a: [
-      { t: "Speed", p: { wing: 3, fb: 2, st: 1 } },
-      { t: "Stamina — I can run all day", p: { cm: 3, fb: 2, cdm: 1 } },
-      { t: "Strength and height", p: { cb: 3, st: 1, gk: 2 } },
-      { t: "Quick reactions / agility", p: { gk: 3, cam: 1, wing: 1 } },
+      { t: "Speed", p: { lw: 2, rw: 2, lwb: 2, rwb: 2, lb: 1, rb: 1, st: 1, ss: 1 } },
+      { t: "Stamina — I can run all day", p: { cm: 2, lcm: 2, rcm: 2, lmid: 2, rmid: 2, lwb: 2, rwb: 2, cdm: 1 } },
+      { t: "Strength and height", p: { lcb: 2, rcb: 2, sweeper: 1, cf: 2, st: 1, gk: 2 } },
+      { t: "Quick reactions / agility", p: { gk: 3, cam: 1, ss: 1, lw: 1, rw: 1 } },
     ],
   },
   {
     q: "A teammate passes to you under pressure. You…",
     a: [
-      { t: "Dribble past the defender", p: { wing: 3, cam: 2 } },
-      { t: "Play a quick, safe pass", p: { cdm: 3, cb: 1, cm: 1 } },
-      { t: "Turn and look for a forward pass", p: { cm: 3, cam: 2 } },
-      { t: "Shield the ball and hold it up", p: { st: 3, cdm: 1 } },
+      { t: "Dribble past the defender", p: { lw: 2, rw: 2, cam: 2, ss: 1 } },
+      { t: "Play a quick, safe pass", p: { cdm: 3, lcb: 1, rcb: 1, sweeper: 1, cm: 1, lcm: 1, rcm: 1 } },
+      { t: "Turn and look for a forward pass", p: { cm: 2, lcm: 2, rcm: 2, cam: 2, ss: 2 } },
+      { t: "Shield the ball and hold it up", p: { cf: 3, st: 2, cdm: 1 } },
     ],
   },
   {
@@ -418,42 +557,42 @@ const QUIZ = [
     a: [
       { t: "Love it!", p: { gk: 5 } },
       { t: "It's okay", p: { gk: 1 } },
-      { t: "I'd rather use my feet", p: { cm: 1, wing: 1, st: 1 } },
+      { t: "I'd rather use my feet", p: { cm: 1, lmid: 1, rmid: 1, lw: 1, rw: 1, st: 1, ss: 1 } },
     ],
   },
   {
     q: "Which describes you best?",
     a: [
-      { t: "Leader, organizes others", p: { cb: 3, gk: 2, cdm: 1 } },
-      { t: "Creative, likes trying tricks", p: { cam: 3, wing: 2 } },
-      { t: "Hard worker, covers ground", p: { cm: 2, fb: 3, cdm: 1 } },
-      { t: "Clinical, wants to finish chances", p: { st: 4 } },
+      { t: "Leader, organizes others", p: { lcb: 2, rcb: 2, sweeper: 2, gk: 2, cdm: 1 } },
+      { t: "Creative, likes trying tricks", p: { cam: 3, lw: 1, rw: 1, ss: 2, lmid: 1, rmid: 1 } },
+      { t: "Hard worker, covers ground", p: { cm: 2, lcm: 1, rcm: 1, lb: 2, rb: 2, lwb: 2, rwb: 2, cdm: 1, lmid: 1, rmid: 1 } },
+      { t: "Clinical, wants to finish chances", p: { st: 3, cf: 3, ss: 2 } },
     ],
   },
   {
     q: "Where do you like to be on the field?",
     a: [
-      { t: "Near the sideline", p: { wing: 3, fb: 3 } },
-      { t: "In the middle of everything", p: { cm: 3, cdm: 2, cam: 2 } },
-      { t: "Close to the opponent's goal", p: { st: 3, cam: 1 } },
-      { t: "Close to my own goal", p: { cb: 3, gk: 2 } },
+      { t: "Near the sideline", p: { lw: 2, rw: 2, lmid: 2, rmid: 2, lb: 2, rb: 2, lwb: 2, rwb: 2 } },
+      { t: "In the middle of everything", p: { cm: 2, lcm: 2, rcm: 2, cdm: 2, cam: 2 } },
+      { t: "Close to the opponent's goal", p: { st: 2, cf: 2, ss: 2, cam: 1 } },
+      { t: "Close to my own goal", p: { lcb: 2, rcb: 2, sweeper: 2, gk: 2 } },
     ],
   },
   {
     q: "How good are you in the air (heading)?",
     a: [
-      { t: "I win most headers", p: { cb: 3, st: 2 } },
-      { t: "Average", p: { cm: 1, cdm: 1, fb: 1 } },
-      { t: "I prefer the ball on the ground", p: { cam: 2, wing: 2 } },
+      { t: "I win most headers", p: { lcb: 2, rcb: 2, sweeper: 1, cf: 2, st: 2 } },
+      { t: "Average", p: { cm: 1, lcm: 1, rcm: 1, cdm: 1, lb: 1, rb: 1 } },
+      { t: "I prefer the ball on the ground", p: { cam: 2, ss: 2, lw: 1, rw: 1, lmid: 1, rmid: 1 } },
     ],
   },
   {
     q: "Your favorite kind of pass?",
     a: [
-      { t: "Long switch across the field", p: { cm: 2, cb: 1, gk: 1, cdm: 1 } },
-      { t: "Through ball for a striker", p: { cam: 3 } },
-      { t: "Cross into the box", p: { wing: 2, fb: 3 } },
-      { t: "One-two (give and go)", p: { st: 2, cm: 1, cam: 1 } },
+      { t: "Long switch across the field", p: { cm: 2, lcm: 1, rcm: 1, lcb: 1, rcb: 1, sweeper: 2, gk: 1, cdm: 1 } },
+      { t: "Through ball for a striker", p: { cam: 3, ss: 2, lcm: 1, rcm: 1 } },
+      { t: "Cross into the box", p: { lw: 2, rw: 2, lmid: 2, rmid: 2, lb: 2, rb: 2, lwb: 3, rwb: 3 } },
+      { t: "One-two (give and go)", p: { st: 2, cf: 1, ss: 2, cm: 1, cam: 1 } },
     ],
   },
 ];

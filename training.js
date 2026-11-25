@@ -390,12 +390,24 @@ const GYM_NEEDS = {
 // Strength / power first; Mobility entries at the end are the cool-down stretch block.
 const POSITION_GYM = {
   gk: ["boxjump", "lateralbound", "squat", "medball", "row", "plank", "hipflexor", "openbooks", "ninetyninety"],
-  cb: ["squat", "rdl", "nordic", "copenhagen", "row", "boxjump", "hamstringstretch", "hipflexor", "quadstretch"],
-  fb: ["lateralbound", "nordic", "lunge", "copenhagen", "calfraise", "plank", "calfstretch", "hipflexor", "hamstringstretch"],
+  sweeper: ["squat", "rdl", "nordic", "lateralbound", "row", "plank", "hamstringstretch", "hipflexor", "openbooks"],
+  lcb: ["squat", "rdl", "nordic", "copenhagen", "row", "boxjump", "hamstringstretch", "hipflexor", "quadstretch"],
+  rcb: ["squat", "rdl", "nordic", "copenhagen", "row", "boxjump", "hamstringstretch", "hipflexor", "quadstretch"],
+  lwb: ["lateralbound", "nordic", "lunge", "broadjump", "calfraise", "plank", "calfstretch", "hipflexor", "hamstringstretch"],
+  rwb: ["lateralbound", "nordic", "lunge", "broadjump", "calfraise", "plank", "calfstretch", "hipflexor", "hamstringstretch"],
+  lb: ["lateralbound", "nordic", "lunge", "copenhagen", "calfraise", "plank", "calfstretch", "hipflexor", "hamstringstretch"],
+  rb: ["lateralbound", "nordic", "lunge", "copenhagen", "calfraise", "plank", "calfstretch", "hipflexor", "hamstringstretch"],
   cdm: ["squat", "copenhagen", "row", "plank", "rdl", "lunge", "hipflexor", "ninetyninety", "figure4"],
+  lcm: ["lunge", "nordic", "calfraise", "plank", "broadjump", "row", "hamstringstretch", "quadstretch", "openbooks"],
+  rcm: ["lunge", "nordic", "calfraise", "plank", "broadjump", "row", "hamstringstretch", "quadstretch", "openbooks"],
   cm: ["lunge", "nordic", "calfraise", "plank", "broadjump", "row", "hamstringstretch", "quadstretch", "openbooks"],
+  lmid: ["broadjump", "nordic", "lateralbound", "calfraise", "lunge", "plank", "calfstretch", "hamstringstretch", "hipflexor"],
+  rmid: ["broadjump", "nordic", "lateralbound", "calfraise", "lunge", "plank", "calfstretch", "hamstringstretch", "hipflexor"],
   cam: ["broadjump", "lateralbound", "copenhagen", "plank", "lunge", "medball", "hipflexor", "ninetyninety", "openbooks"],
-  wing: ["broadjump", "nordic", "lateralbound", "calfraise", "rdl", "plank", "calfstretch", "hamstringstretch", "hipflexor"],
+  lw: ["broadjump", "nordic", "lateralbound", "calfraise", "rdl", "plank", "calfstretch", "hamstringstretch", "hipflexor"],
+  rw: ["broadjump", "nordic", "lateralbound", "calfraise", "rdl", "plank", "calfstretch", "hamstringstretch", "hipflexor"],
+  ss: ["broadjump", "lateralbound", "nordic", "plank", "lunge", "medball", "hipflexor", "ninetyninety", "quadstretch"],
+  cf: ["squat", "boxjump", "nordic", "pushup", "medball", "copenhagen", "quadstretch", "hipflexor", "hamstringstretch"],
   st: ["squat", "boxjump", "nordic", "pushup", "medball", "copenhagen", "quadstretch", "hipflexor", "hamstringstretch"],
 };
 

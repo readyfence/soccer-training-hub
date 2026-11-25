@@ -13,6 +13,49 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 let timerHandle = null;
 
+/** Map legacy saved position ids onto the expanded set. */
+function resolvePosition(id) {
+  if (!id) return null;
+  const mapped = (typeof POSITION_ALIASES !== "undefined" && POSITION_ALIASES[id]) || id;
+  return POSITIONS[mapped] ? mapped : (POSITIONS[id] ? id : null);
+}
+
+function migrateProgressKeys(from, to) {
+  if (from === to) return;
+  const data = store.get();
+  let changed = false;
+  for (const [k, v] of Object.entries(data)) {
+    if (!k.startsWith(from + "-")) continue;
+    const next = to + k.slice(from.length);
+    if (!data[next]) data[next] = v;
+    delete data[k];
+    changed = true;
+  }
+  if (changed) localStorage.setItem(STORE_KEY, JSON.stringify(data));
+}
+
+function migrateSavedPosition() {
+  const raw = localStorage.getItem(POS_KEY);
+  if (!raw) return;
+  const mapped = resolvePosition(raw);
+  if (!mapped) return;
+  if (mapped !== raw) {
+    migrateProgressKeys(raw, mapped);
+    try {
+      const roles = JSON.parse(localStorage.getItem(ROLE_KEY) || "{}");
+      if (roles[raw] && !roles[mapped]) {
+        roles[mapped] = roles[raw];
+        delete roles[raw];
+        localStorage.setItem(ROLE_KEY, JSON.stringify(roles));
+      } else if (roles[raw]) {
+        delete roles[raw];
+        localStorage.setItem(ROLE_KEY, JSON.stringify(roles));
+      }
+    } catch { /* ignore corrupt roles */ }
+    localStorage.setItem(POS_KEY, mapped);
+  }
+}
+
 const store = {
   get() {
     try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }
@@ -25,6 +68,8 @@ const store = {
   },
   reset() { localStorage.removeItem(STORE_KEY); },
 };
+
+migrateSavedPosition();
 
 // ---------- Age ----------
 
@@ -803,9 +848,14 @@ function viewPick() {
   );
 }
 
-function viewStyle(pos) {
+function viewStyle(rawPos) {
+  const pos = resolvePosition(rawPos);
   const p = POSITIONS[pos];
-  if (!p) return viewNotFound();
+  if (!p || !ROLES[pos]) return viewNotFound();
+  if (rawPos && rawPos !== pos) {
+    location.hash = `#/style/${pos}`;
+    return;
+  }
   localStorage.setItem(POS_KEY, pos);
   const current = getRole(pos)?.id;
 
@@ -854,9 +904,14 @@ function viewPositions() {
     </div>`;
 }
 
-function viewPosition(id) {
+function viewPosition(rawId) {
+  const id = resolvePosition(rawId);
   const p = POSITIONS[id];
   if (!p) return viewNotFound();
+  if (rawId && rawId !== id) {
+    location.hash = `#/position/${id}`;
+    return;
+  }
   localStorage.setItem(POS_KEY, id);
   const done = store.get();
   const age = getAge();
@@ -912,11 +967,16 @@ function viewPosition(id) {
   bindAgeForms(() => viewPosition(id));
 }
 
-function viewSession(pos, week, idx) {
+function viewSession(rawPos, week, idx) {
+  const pos = resolvePosition(rawPos) || rawPos;
   const p = POSITIONS[pos];
   week = Number(week);
   const validIdx = idx === "gym" || (p && p.sessions[Number(idx)]);
   if (!p || !validIdx || !WEEK_INTENSITY[week]) return viewNotFound();
+  if (rawPos && rawPos !== pos) {
+    location.hash = `#/session/${pos}/${week}/${idx}`;
+    return;
+  }
   if (idx !== "gym") idx = Number(idx);
   if (idx === "gym" && !getGymSetup()) {
     location.hash = `#/gym-setup/${pos}/${week}/gym`;

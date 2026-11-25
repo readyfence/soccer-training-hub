@@ -158,13 +158,38 @@ const ROLES = {
     sweeper: { name: "Sweeper Keeper", summary: "Plays high, rushes out to clear through balls, acts as an extra defender.", drills: ["sweeper", "distribution", "firsttouch"] },
     ballplaying: { name: "Ball-Playing Keeper", summary: "Starts attacks with the feet and plays out from the back under pressure.", drills: ["gate", "firsttouch", "distribution"] },
   },
-  cb: {
+  sweeper: {
+    libero: { name: "Libero", summary: "Steps into midfield with the ball and breaks lines with passes.", drills: ["scanning", "distribution", "throughball"] },
+    covering: { name: "Covering Sweeper", summary: "Sits deepest, reads danger early, and sweeps up with recovery pace.", drills: ["shuffle", "sprints", "scanning"] },
+    stopper: { name: "Stopper Sweeper", summary: "Aggressive: steps out to win the ball and organizes the line behind.", drills: ["oneVone", "heading", "tbox"] },
+  },
+  lcb: {
     stopper: { name: "Stopper", summary: "Aggressive. Steps out to win the ball and dominates duels in the air.", drills: ["heading", "oneVone", "tbox"] },
     ballplaying: { name: "Ball-Playing Defender", summary: "Carries the ball forward and breaks lines with passes.", drills: ["distribution", "throughball", "scanning"] },
     cover: { name: "Covering Defender", summary: "Reads danger early and uses recovery pace to sweep up behind.", drills: ["shuffle", "sprints", "scanning"] },
   },
-  fb: {
-    wingback: { name: "Attacking Wing-Back", summary: "Bombs forward on overlaps and delivers crosses all game.", drills: ["overlap", "crossing", "sprints"] },
+  rcb: {
+    stopper: { name: "Stopper", summary: "Aggressive. Steps out to win the ball and dominates duels in the air.", drills: ["heading", "oneVone", "tbox"] },
+    ballplaying: { name: "Ball-Playing Defender", summary: "Carries the ball forward and breaks lines with passes.", drills: ["distribution", "throughball", "scanning"] },
+    cover: { name: "Covering Defender", summary: "Reads danger early and uses recovery pace to sweep up behind.", drills: ["shuffle", "sprints", "scanning"] },
+  },
+  lwb: {
+    attacking: { name: "Attacking Wing-Back", summary: "Bombs forward on overlaps and delivers crosses all game.", drills: ["overlap", "crossing", "sprints"] },
+    defensive: { name: "Defensive Wing-Back", summary: "Tracks runners and wins the wide duel before joining attacks.", drills: ["shuffle", "oneVone", "tbox"] },
+    inverted: { name: "Inverted Wing-Back", summary: "Tucks inside in possession to overload midfield.", drills: ["scanning", "gate", "firsttouch"] },
+  },
+  rwb: {
+    attacking: { name: "Attacking Wing-Back", summary: "Bombs forward on overlaps and delivers crosses all game.", drills: ["overlap", "crossing", "sprints"] },
+    defensive: { name: "Defensive Wing-Back", summary: "Tracks runners and wins the wide duel before joining attacks.", drills: ["shuffle", "oneVone", "tbox"] },
+    inverted: { name: "Inverted Wing-Back", summary: "Tucks inside in possession to overload midfield.", drills: ["scanning", "gate", "firsttouch"] },
+  },
+  lb: {
+    wingback: { name: "Attacking Full-Back", summary: "Bombs forward on overlaps and delivers crosses all game.", drills: ["overlap", "crossing", "sprints"] },
+    defensive: { name: "Defensive Full-Back", summary: "Locks down the opposition winger and rarely gets beaten 1v1.", drills: ["shuffle", "oneVone", "tbox"] },
+    inverted: { name: "Inverted Full-Back", summary: "Steps into midfield in possession to help control the game.", drills: ["scanning", "gate", "firsttouch"] },
+  },
+  rb: {
+    wingback: { name: "Attacking Full-Back", summary: "Bombs forward on overlaps and delivers crosses all game.", drills: ["overlap", "crossing", "sprints"] },
     defensive: { name: "Defensive Full-Back", summary: "Locks down the opposition winger and rarely gets beaten 1v1.", drills: ["shuffle", "oneVone", "tbox"] },
     inverted: { name: "Inverted Full-Back", summary: "Steps into midfield in possession to help control the game.", drills: ["scanning", "gate", "firsttouch"] },
   },
@@ -173,20 +198,55 @@ const ROLES = {
     regista: { name: "Deep-Lying Playmaker", summary: "Dictates tempo from deep with long and line-breaking passes.", drills: ["distribution", "scanning", "throughball"] },
     anchor: { name: "Anchor", summary: "Positionally disciplined. Shields the back line and keeps it simple.", drills: ["scanning", "shuffle", "gate"] },
   },
+  lcm: {
+    boxtobox: { name: "Box-to-Box", summary: "Covers every blade of grass: presses, tackles and arrives late in the box.", drills: ["sprints", "pressing", "longshots"] },
+    mezzala: { name: "Mezzala", summary: "Drifts into the left half-space to create and score from midfield.", drills: ["throughball", "turning", "finishing"] },
+    tempo: { name: "Tempo Controller", summary: "Always available, rarely loses the ball, keeps the team ticking.", drills: ["scanning", "gate", "firsttouch"] },
+  },
+  rcm: {
+    boxtobox: { name: "Box-to-Box", summary: "Covers every blade of grass: presses, tackles and arrives late in the box.", drills: ["sprints", "pressing", "longshots"] },
+    mezzala: { name: "Mezzala", summary: "Drifts into the right half-space to create and score from midfield.", drills: ["throughball", "turning", "finishing"] },
+    tempo: { name: "Tempo Controller", summary: "Always available, rarely loses the ball, keeps the team ticking.", drills: ["scanning", "gate", "firsttouch"] },
+  },
   cm: {
     boxtobox: { name: "Box-to-Box", summary: "Covers every blade of grass: presses, tackles and arrives late in the box.", drills: ["sprints", "pressing", "longshots"] },
     mezzala: { name: "Mezzala", summary: "Drifts into the half-spaces to create and score from midfield.", drills: ["throughball", "turning", "finishing"] },
     tempo: { name: "Tempo Controller", summary: "Always available, rarely loses the ball, keeps the team ticking.", drills: ["scanning", "gate", "firsttouch"] },
+  },
+  lmid: {
+    traditional: { name: "Wide Provider", summary: "Stays wide on the left, combines, and delivers crosses.", drills: ["crossing", "gate", "sprints"] },
+    inverted: { name: "Inverted Wide Mid", summary: "Drifts inside from the left to shoot or combine.", drills: ["cutinside", "longshots", "turning"] },
+    boxtobox: { name: "Shuttler", summary: "Tracks back and bursts forward along the left channel all game.", drills: ["sprints", "pressing", "shuffle"] },
+  },
+  rmid: {
+    traditional: { name: "Wide Provider", summary: "Stays wide on the right, combines, and delivers crosses.", drills: ["crossing", "gate", "sprints"] },
+    inverted: { name: "Inverted Wide Mid", summary: "Drifts inside from the right to shoot or combine.", drills: ["cutinside", "longshots", "turning"] },
+    boxtobox: { name: "Shuttler", summary: "Tracks back and bursts forward along the right channel all game.", drills: ["sprints", "pressing", "shuffle"] },
   },
   cam: {
     goalscoring: { name: "Goal-Scoring 10", summary: "A shadow striker who makes late runs into the box and finishes chances.", drills: ["poacher", "longshots", "finishing"] },
     playmaker: { name: "Classic Number 10", summary: "The creator: finds pockets of space and plays the killer pass.", drills: ["throughball", "scanning", "turning"] },
     pressing: { name: "Pressing 10", summary: "Leads the press from midfield and wins the ball high up the pitch.", drills: ["pressing", "sprints", "oneVone"] },
   },
-  wing: {
+  lw: {
     traditional: { name: "Traditional Winger", summary: "Hugs the touchline, beats the full-back on the outside and crosses.", drills: ["crossing", "slalom", "sprints"] },
     inverted: { name: "Inverted Winger", summary: "Cuts inside onto the stronger foot to shoot or combine.", drills: ["cutinside", "longshots", "oneVone"] },
     wideplaymaker: { name: "Wide Playmaker", summary: "Drifts inside to create chances with passes and dribbles.", drills: ["throughball", "scanning", "turning"] },
+  },
+  rw: {
+    traditional: { name: "Traditional Winger", summary: "Hugs the touchline, beats the full-back on the outside and crosses.", drills: ["crossing", "slalom", "sprints"] },
+    inverted: { name: "Inverted Winger", summary: "Cuts inside onto the stronger foot to shoot or combine.", drills: ["cutinside", "longshots", "oneVone"] },
+    wideplaymaker: { name: "Wide Playmaker", summary: "Drifts inside to create chances with passes and dribbles.", drills: ["throughball", "scanning", "turning"] },
+  },
+  ss: {
+    classic: { name: "Classic Second Striker", summary: "Plays in the hole: turns, links, and slips runners in behind.", drills: ["throughball", "turning", "finishing"] },
+    shadow: { name: "Shadow Striker", summary: "Arrives late into the box and finishes from the second wave.", drills: ["poacher", "finishing", "sprints"] },
+    creator: { name: "Linking 9½", summary: "Drops between the lines to create for the striker ahead.", drills: ["scanning", "throughball", "firsttouch"] },
+  },
+  cf: {
+    poacher: { name: "Poacher", summary: "Lives on the shoulder of the last defender and finishes everything in the box.", drills: ["poacher", "finishing", "firsttouch"] },
+    target: { name: "Target Forward", summary: "Holds the ball up, wins headers and brings teammates into play.", drills: ["holdup", "heading", "finishing"] },
+    complete: { name: "Complete Forward", summary: "Can hold up, run in behind, and finish with either foot.", drills: ["holdup", "sprints", "finishing"] },
   },
   st: {
     poacher: { name: "Poacher", summary: "Lives on the shoulder of the last defender and finishes everything in the box.", drills: ["poacher", "finishing", "firsttouch"] },
