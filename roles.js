@@ -154,9 +154,9 @@ Object.assign(DRILLS, {
 // Each role adds one style drill to every field session (session N gets drills[N]).
 const ROLES = {
   gk: {
-    shotstopper: { name: "Shot-Stopper", summary: "Elite reflexes, commands the six-yard box, makes the big saves.", drills: ["gkdive", "gkfootwork", "box"] },
-    sweeper: { name: "Sweeper Keeper", summary: "Plays high, rushes out to clear through balls, acts as an extra defender.", drills: ["sweeper", "distribution", "firsttouch"] },
-    ballplaying: { name: "Ball-Playing Keeper", summary: "Starts attacks with the feet and plays out from the back under pressure.", drills: ["gate", "firsttouch", "distribution"] },
+    shotstopper: { name: "Shot-Stopper", summary: "Elite reflexes, commands the six-yard box, makes the big saves.", drills: ["gkdive", "gkfootwork", "gkreaction"] },
+    sweeper: { name: "Sweeper Keeper", summary: "Plays high, rushes out to clear through balls, acts as an extra defender.", drills: ["sweeper", "distribution", "longballcontrol"] },
+    ballplaying: { name: "Ball-Playing Keeper", summary: "Starts attacks with the feet and plays out from the back under pressure.", drills: ["gate", "gkhands", "distribution"] },
   },
   sweeper: {
     libero: { name: "Libero", summary: "Steps into midfield with the ball and breaks lines with passes.", drills: ["scanning", "distribution", "throughball"] },
@@ -194,9 +194,9 @@ const ROLES = {
     inverted: { name: "Inverted Full-Back", summary: "Steps into midfield in possession to help control the game.", drills: ["scanning", "gate", "firsttouch"] },
   },
   cdm: {
-    destroyer: { name: "Ball-Winner", summary: "Breaks up attacks with tackles and interceptions.", drills: ["shuffle", "pressing", "oneVone"] },
-    regista: { name: "Deep-Lying Playmaker", summary: "Dictates tempo from deep with long and line-breaking passes.", drills: ["distribution", "scanning", "throughball"] },
-    anchor: { name: "Anchor", summary: "Positionally disciplined. Shields the back line and keeps it simple.", drills: ["scanning", "shuffle", "gate"] },
+    destroyer: { name: "Ball-Winner", summary: "Breaks up attacks with tackles and interceptions.", drills: ["shuffle", "pressingtrap", "oneVone"] },
+    regista: { name: "Deep-Lying Playmaker", summary: "Dictates tempo from deep with long and line-breaking passes.", drills: ["distribution", "scanning", "switchplay"] },
+    anchor: { name: "Anchor", summary: "Positionally disciplined. Shields the back line and keeps it simple.", drills: ["scanning", "rondogates", "gate"] },
   },
   lcm: {
     boxtobox: { name: "Box-to-Box", summary: "Covers every blade of grass: presses, tackles and arrives late in the box.", drills: ["sprints", "pressing", "longshots"] },
@@ -249,9 +249,9 @@ const ROLES = {
     complete: { name: "Complete Forward", summary: "Can hold up, run in behind, and finish with either foot.", drills: ["holdup", "sprints", "finishing"] },
   },
   st: {
-    poacher: { name: "Poacher", summary: "Lives on the shoulder of the last defender and finishes everything in the box.", drills: ["poacher", "finishing", "firsttouch"] },
-    false9: { name: "False 9", summary: "Drops deep to link play, drags defenders out and creates space for runners.", drills: ["scanning", "throughball", "turning"] },
-    target: { name: "Target Forward", summary: "Holds the ball up, wins headers and brings teammates into play.", drills: ["holdup", "heading", "finishing"] },
-    pressing: { name: "Pressing Forward", summary: "The first defender: relentless pressing and runs in behind.", drills: ["pressing", "sprints", "finishing"] },
+    poacher: { name: "Poacher", summary: "Lives on the shoulder of the last defender and finishes everything in the box.", drills: ["poacher", "nearpostrun", "volleyfinish"] },
+    false9: { name: "False 9", summary: "Drops deep to link play, drags defenders out and creates space for runners.", drills: ["scanning", "throughball", "giveandgo"] },
+    target: { name: "Target Forward", summary: "Holds the ball up, wins headers and brings teammates into play.", drills: ["holdup", "aerialduel", "finishing"] },
+    pressing: { name: "Pressing Forward", summary: "The first defender: relentless pressing and runs in behind.", drills: ["pressing", "pressingtrap", "finishing"] },
   },
 };
