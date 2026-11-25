@@ -54,7 +54,8 @@ function drillDiagram(drill) {
 function setActiveNav() {
   const hash = location.hash || "#/";
   document.querySelectorAll(".topbar nav a").forEach((a) => {
-    a.classList.toggle("active", hash.startsWith(a.getAttribute("href")));
+    const href = a.getAttribute("href");
+    a.classList.toggle("active", href === "#/" ? hash === "#/" || hash === "#" : hash.startsWith(href));
   });
 }
 
