@@ -208,12 +208,82 @@ function latestMatchLog() {
   return getMatchLogs()[0] || null;
 }
 
+function clamp(n, min, max) {
+  return Math.min(max, Math.max(min, n));
+}
+
+function parseImpact(actions) {
+  const text = String(actions || "").toLowerCase();
+  const goals =
+    Number((text.match(/(\d+)\s*(goals?|g\b)/) || [])[1]) ||
+    (/\bbrace\b/.test(text) ? 2 : /\bhat\s*trick\b/.test(text) ? 3 : 0);
+  const assists =
+    Number((text.match(/(\d+)\s*(assists?|a\b)/) || [])[1]) || 0;
+  return { goals, assists };
+}
+
+/** Build a match rating /10 from minutes, impact, and self scores. */
+function computeMatchRating(entry) {
+  const effort = Number(entry.effort) || 5;
+  const technique = Number(entry.technique) || 5;
+  const decisions = Number(entry.decisions) || 5;
+  const physical = Number(entry.physical) || 5;
+  const selfAvg = (effort + technique + decisions + physical) / 4;
+
+  const minutes = clamp(Number(entry.minutes) || 0, 0, 120);
+  const minuteFactor = minutes <= 0 ? 0.85 : minutes < 30 ? 0.9 : minutes < 60 ? 0.96 : 1;
+
+  const { goals, assists } = parseImpact(entry.actions);
+  const impactBoost = clamp(goals * 0.35 + assists * 0.25, 0, 1.4);
+
+  // Honest reflection is part of elite habits — tiny bump, not a free 10.
+  const improveBump = String(entry.improve || "").trim().length >= 8 ? 0.15 : 0;
+
+  const raw = selfAvg * minuteFactor + impactBoost + improveBump;
+  const score = Math.round(clamp(raw, 1, 10) * 10) / 10;
+
+  let label = "Needs work";
+  if (score >= 9) label = "Outstanding";
+  else if (score >= 8) label = "Excellent";
+  else if (score >= 7) label = "Strong";
+  else if (score >= 6) label = "Solid";
+  else if (score >= 5) label = "Average";
+  else if (score >= 4) label = "Below par";
+
+  const parts = [];
+  if (minutes) parts.push(`${minutes} min`);
+  if (goals) parts.push(`${goals} goal${goals === 1 ? "" : "s"}`);
+  if (assists) parts.push(`${assists} assist${assists === 1 ? "" : "s"}`);
+  parts.push(`effort ${effort}/10`);
+
+  return {
+    score,
+    label,
+    blurb: parts.length ? parts.join(" · ") : "Based on your self-scores",
+  };
+}
+
+function matchRatingBadgeHtml(rating) {
+  if (!rating) return "";
+  const band = rating.score >= 7 ? "high" : rating.score >= 5 ? "mid" : "low";
+  return `
+    <div class="match-rating ${band}" aria-label="Match rating ${rating.score} out of 10">
+      <div class="match-rating-score">${rating.score}<span>/10</span></div>
+      <div>
+        <strong>${escapeElite(rating.label)}</strong>
+        <div class="muted">${escapeElite(rating.blurb)}</div>
+      </div>
+    </div>`;
+}
+
 /** Tip for Today based on the last post-match note. */
 function matchReflectionTip() {
   const log = latestMatchLog();
   if (!log?.improve) return "";
   const when = log.at ? new Date(log.at).toLocaleDateString() : "recently";
-  return `From your ${when} match note: focus on <strong>${escapeElite(log.improve)}</strong> in today's work.`;
+  const rating = log.rating || computeMatchRating(log);
+  const rateBit = rating ? ` Match rating: <strong>${rating.score}/10 (${escapeElite(rating.label)})</strong>.` : "";
+  return `From your ${when} match note:${rateBit} Focus on <strong>${escapeElite(log.improve)}</strong> in today's work.`;
 }
 
 function escapeElite(s) {
@@ -224,31 +294,49 @@ function escapeElite(s) {
     .replace(/"/g, "&quot;");
 }
 
+function scoreSelect(name, label) {
+  return `
+    <label>${label}
+      <select name="${name}" required>
+        <option value="">—</option>
+        ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => `<option value="${n}">${n}</option>`).join("")}
+      </select>
+    </label>`;
+}
+
 function matchLogHtml() {
   const last = latestMatchLog();
+  const lastRating = last ? (last.rating || computeMatchRating(last)) : null;
   const lastHtml = last
-    ? `<p class="muted">Last log (${new Date(last.at).toLocaleDateString()}):
+    ? `${matchRatingBadgeHtml(lastRating)}
+      <p class="muted">Last log (${new Date(last.at).toLocaleDateString()}):
         ${last.minutes != null && last.minutes !== "" ? `${escapeElite(last.minutes)} min` : "—"}
         ${last.actions ? ` · ${escapeElite(last.actions)}` : ""}
         ${last.improve ? ` · Improve: <em>${escapeElite(last.improve)}</em>` : ""}</p>`
-    : `<p class="muted">No match logged yet. After your next game, capture minutes, key actions, and one fix.</p>`;
+    : `<p class="muted">No match logged yet. After your next game, rate yourself and we'll give you a match rating out of 10.</p>`;
 
   return `
     <div class="card match-log" id="matchLogCard">
       <h3>🏟️ After-match reflection</h3>
-      <p>Simple log → feeds your next tip on <a href="#/today">Today</a>.</p>
+      <p>Rate your game → get a match rating /10. It also feeds your next tip on <a href="#/today">Today</a>.</p>
       ${lastHtml}
       <form id="matchLogForm" class="match-log-form">
         <label>Minutes played
           <input type="number" name="minutes" min="0" max="120" placeholder="e.g. 65" />
         </label>
         <label>Goals / assists or key actions
-          <input type="text" name="actions" maxlength="120" placeholder="e.g. 1 assist, won 4 duels" />
+          <input type="text" name="actions" maxlength="120" placeholder="e.g. 1 goal, 1 assist, won 4 duels" />
         </label>
+        <div class="match-scores">
+          ${scoreSelect("effort", "Effort")}
+          ${scoreSelect("technique", "Technique")}
+          ${scoreSelect("decisions", "Decisions")}
+          ${scoreSelect("physical", "Physical / duels")}
+        </div>
         <label>One thing to improve
           <input type="text" name="improve" maxlength="160" required placeholder="e.g. first touch under pressure" />
         </label>
-        <button class="btn small" type="submit">Save reflection</button>
+        <button class="btn small" type="submit">Save & get rating</button>
       </form>
     </div>`;
 }
@@ -261,11 +349,17 @@ function bindMatchLog(onSave) {
     const fd = new FormData(form);
     const improve = String(fd.get("improve") || "").trim();
     if (!improve) return;
-    saveMatchLog({
+    const entry = {
       minutes: String(fd.get("minutes") || "").trim(),
       actions: String(fd.get("actions") || "").trim(),
+      effort: String(fd.get("effort") || "").trim(),
+      technique: String(fd.get("technique") || "").trim(),
+      decisions: String(fd.get("decisions") || "").trim(),
+      physical: String(fd.get("physical") || "").trim(),
       improve,
-    });
+    };
+    entry.rating = computeMatchRating(entry);
+    saveMatchLog(entry);
     if (onSave) onSave();
   });
 }

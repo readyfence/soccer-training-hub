@@ -477,14 +477,40 @@ details summary { cursor: pointer; font-weight: 600; color: var(--green-dark); m
 .match-log { margin-top: 16px; }
 .match-log-form { display: grid; gap: 12px; margin-top: 10px; }
 .match-log-form label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
-.match-log-form input {
+.match-log-form input, .match-log-form select {
   font: inherit;
   padding: 10px 12px;
   border: 2px solid #dbe5de;
   border-radius: 10px;
   background: #fff;
 }
-.match-log-form input:focus { outline: none; border-color: var(--green); }
+.match-log-form input:focus, .match-log-form select:focus { outline: none; border-color: var(--green); }
+.match-scores {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+.match-rating {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  margin: 10px 0;
+  background: var(--green-light);
+}
+.match-rating.mid { background: #fff4d6; }
+.match-rating.low { background: #fde4e1; }
+.match-rating-score {
+  font-size: 2.2rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--green-dark);
+}
+.match-rating.mid .match-rating-score { color: #8a5a00; }
+.match-rating.low .match-rating-score { color: #a1281c; }
+.match-rating-score span { font-size: 1rem; font-weight: 700; opacity: 0.7; }
 
 .parent-tip { border-left: 5px solid #7a9e87; }
 .pro-standard { margin: 10px 0; padding: 10px 12px; background: #fff8e6; border-radius: 10px; }
