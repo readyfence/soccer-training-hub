@@ -85,31 +85,64 @@ function viewHome() {
 }
 
 function viewFinder() {
-  const scores = {};
+  const answers = QUIZ.map(() => new Set());
   let step = 0;
 
   function renderQuestion() {
     const item = QUIZ[step];
+    const picked = answers[step];
+    const isLast = step === QUIZ.length - 1;
     app.innerHTML = `
       <div class="quiz">
         <p class="stepper">Question ${step + 1} of ${QUIZ.length}</p>
         <div class="progress-bar"><span style="width:${(step / QUIZ.length) * 100}%"></span></div>
         <h2>${item.q}</h2>
+        <p class="hint">Pick all that apply.</p>
         <div class="options">
-          ${item.a.map((ans, i) => `<button class="option" data-i="${i}">${ans.t}</button>`).join("")}
+          ${item.a.map((ans, i) => `
+            <button class="option ${picked.has(i) ? "selected" : ""}" data-i="${i}" aria-pressed="${picked.has(i)}">
+              <span class="box">${picked.has(i) ? "✓" : ""}</span>${ans.t}
+            </button>`).join("")}
+        </div>
+        <div class="btn-row" style="justify-content:space-between">
+          <button class="btn secondary small" id="back" ${step === 0 ? "disabled" : ""}>← Back</button>
+          <button class="btn small" id="next" ${picked.size ? "" : "disabled"}>${isLast ? "See my results" : "Next →"}</button>
         </div>
       </div>`;
+
     app.querySelectorAll(".option").forEach((btn) =>
       btn.addEventListener("click", () => {
-        const points = item.a[btn.dataset.i].p;
-        for (const [pos, pts] of Object.entries(points)) scores[pos] = (scores[pos] || 0) + pts;
-        step++;
-        step < QUIZ.length ? renderQuestion() : renderResults();
+        const i = Number(btn.dataset.i);
+        picked.has(i) ? picked.delete(i) : picked.add(i);
+        renderQuestion();
       })
     );
+    document.getElementById("back").addEventListener("click", () => {
+      step--;
+      renderQuestion();
+    });
+    document.getElementById("next").addEventListener("click", () => {
+      step++;
+      step < QUIZ.length ? renderQuestion() : renderResults();
+    });
+  }
+
+  // Points are split across picks so every question carries the same weight.
+  function computeScores() {
+    const scores = {};
+    QUIZ.forEach((item, q) => {
+      const picks = [...answers[q]];
+      picks.forEach((i) => {
+        for (const [pos, pts] of Object.entries(item.a[i].p)) {
+          scores[pos] = (scores[pos] || 0) + pts / picks.length;
+        }
+      });
+    });
+    return scores;
   }
 
   function renderResults() {
+    const scores = computeScores();
     const ranked = Object.keys(POSITIONS)
       .map((id) => ({ id, score: scores[id] || 0 }))
       .sort((a, b) => b.score - a.score);
