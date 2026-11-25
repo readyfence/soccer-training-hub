@@ -298,6 +298,8 @@ button.card.pick.current { border-color: var(--accent); }
 .choice input { width: 18px; height: 18px; accent-color: var(--green); }
 
 .date-line { font-size: 1.2rem; font-weight: 700; color: var(--green-dark); margin-top: -10px; }
+.style-card { margin: 16px 0; border-left: 5px solid var(--accent); }
+.style-card p { margin: 6px 0 0; }
 .today { margin-top: 20px; border-top: 5px solid var(--accent); }
 .today-head { display: flex; align-items: center; gap: 16px; }
 .today-head h2 { margin: 0; }

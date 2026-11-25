@@ -310,7 +310,7 @@ const PATHWAY = [
       "Join a competitive club team.",
       "Master first touch, turning and 1v1 moves under pressure.",
       "Learn basic tactics: width, depth and support angles.",
-      "Juggle 100+ touches.",
+      "Juggle 25+ touches in a row.",
     ],
   },
   {
@@ -356,5 +356,5 @@ const BENCHMARKS = [
   { id: "agility", name: "5-10-5 agility shuttle", unit: "sec", lower: true, targets: { u16: 5.0, u19: 4.7, pro: 4.5 } },
   { id: "vjump", name: "Vertical jump", unit: "cm", lower: false, targets: { u16: 38, u19: 45, pro: 50 } },
   { id: "yoyo", name: "Yo-Yo Intermittent Recovery 1", unit: "m", lower: false, targets: { u16: 1200, u19: 1600, pro: 2000 } },
-  { id: "juggle", name: "Juggling record", unit: "touches", lower: false, targets: { u10: 30, u13: 100, u16: 250, u19: 500, pro: 500 } },
+  { id: "juggle", name: "Juggling record", unit: "touches", lower: false, targets: { u10: 10, u13: 25, u16: 250, u19: 500, pro: 500 } },
 ];

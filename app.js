@@ -6,6 +6,7 @@ const BENCH_KEY = "sth-benchmarks";
 const GYM_KEY = "sth-gym-setup";
 const GYM_MODES = ["bw", "light", "loaded"];
 const PROFILE_KEY = "sth-profile";
+const ROLE_KEY = "sth-roles";
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -199,7 +200,35 @@ const sessionsPerWeek = (pos) => POSITIONS[pos].sessions.length + 1;
 const totalSessions = (pos) => sessionsPerWeek(pos) * WEEK_INTENSITY.length;
 const completedFor = (pos) => Object.keys(store.get()).filter((k) => k.startsWith(pos + "-")).length;
 
-function fieldDrills(ids) {
+function getRole(pos) {
+  const roles = JSON.parse(localStorage.getItem(ROLE_KEY) || "{}");
+  const id = roles[pos];
+  return ROLES[pos]?.[id] ? { id, ...ROLES[pos][id] } : null;
+}
+
+function setRole(pos, roleId) {
+  const roles = JSON.parse(localStorage.getItem(ROLE_KEY) || "{}");
+  if (roleId) roles[pos] = roleId;
+  else delete roles[pos];
+  localStorage.setItem(ROLE_KEY, JSON.stringify(roles));
+}
+
+// The style drill for a session, skipping any already in it.
+function styleDrill(pos, idx) {
+  const role = getRole(pos);
+  if (!role) return null;
+  const base = POSITIONS[pos].sessions[idx];
+  const n = role.drills.length;
+  for (let i = 0; i < n; i++) {
+    const id = role.drills[(idx + i) % n];
+    if (!base.includes(id)) return id;
+  }
+  return null;
+}
+
+function fieldDrills(pos, idx) {
+  const extra = styleDrill(pos, idx);
+  const ids = extra ? [...POSITIONS[pos].sessions[idx], extra] : POSITIONS[pos].sessions[idx];
   return headingRule() === "none" ? ids.map((id) => (id === "heading" ? "juggling" : id)) : ids;
 }
 
@@ -226,12 +255,14 @@ function buildItems(pos, week, idx) {
     });
   }
 
-  return fieldDrills(POSITIONS[pos].sessions[idx]).map((id) => {
+  const extra = styleDrill(pos, idx);
+  const role = getRole(pos);
+  return fieldDrills(pos, idx).map((id) => {
     const d = DRILLS[id];
     return {
       title: d.name,
       category: d.category,
-      tags: [`${sets} sets`, `Equipment: ${d.equipment}`],
+      tags: [...(id === extra ? [`⭐ ${role.name} drill`] : []), `${sets} sets`, `Equipment: ${d.equipment}`],
       setup: d.setup,
       steps: d.steps,
       coaching: d.coaching,
@@ -246,7 +277,7 @@ function buildItems(pos, week, idx) {
 function sessionMinutes(pos, week, idx) {
   const group = ageGroup();
   if (idx === "gym") return Math.round(POSITION_GYM[pos].length * group.sets[week] * 1.5 + 10);
-  return fieldDrills(POSITIONS[pos].sessions[idx])
+  return fieldDrills(pos, idx)
     .reduce((sum, id) => sum + Math.round(DRILLS[id].minutes * group.volume), 0);
 }
 
@@ -303,7 +334,7 @@ function sessionLink(pos, { week, idx }) {
   return {
     title: `${name} (Week ${week + 1}: ${WEEK_INTENSITY[week]})`,
     action: `<a class="btn" href="#/session/${pos}/${week}/${idx}">Start session</a>`,
-    detail: `~${sessionMinutes(pos, week, idx)} min · ${POSITIONS[pos].name} program`,
+    detail: `~${sessionMinutes(pos, week, idx)} min · ${getRole(pos) ? `${getRole(pos).name} ` : ""}${POSITIONS[pos].name} program`,
   };
 }
 
@@ -542,7 +573,8 @@ function viewProfile() {
             <option value="">Choose your position…</option>
             ${Object.entries(POSITIONS).map(([id, p]) => `<option value="${id}" ${pos === id ? "selected" : ""}>${p.icon} ${p.name}</option>`).join("")}
           </select>
-          <small><a href="#/finder">Not sure? Take the Position Finder</a></small>
+          <small><a href="#/finder">Not sure? Take the Position Finder</a>
+            ${POSITIONS[pos] ? ` · Style: <a href="#/style/${pos}">${getRole(pos)?.name || "All-round"} (change)</a>` : ""}</small>
         </label>
 
         <h2>Team practice days</h2>
@@ -681,7 +713,7 @@ function viewFinder() {
           <h1>${best.icon} ${best.name}</h1>
           <p>${best.summary}</p>
           <div class="btn-row">
-            <a class="btn" href="#/position/${ranked[0].id}">Start the ${best.name} program</a>
+            <a class="btn" href="#/style/${ranked[0].id}">Choose my ${best.name} style →</a>
             <a class="btn secondary" href="#/finder" onclick="location.reload()">Retake quiz</a>
           </div>
         </section>
@@ -715,7 +747,39 @@ function viewPick() {
   app.querySelectorAll(".pick").forEach((btn) =>
     btn.addEventListener("click", () => {
       localStorage.setItem(POS_KEY, btn.dataset.id);
-      location.hash = `#/position/${btn.dataset.id}`;
+      location.hash = `#/style/${btn.dataset.id}`;
+    })
+  );
+}
+
+function viewStyle(pos) {
+  const p = POSITIONS[pos];
+  if (!p) return viewNotFound();
+  localStorage.setItem(POS_KEY, pos);
+  const current = getRole(pos)?.id;
+
+  app.innerHTML = `
+    <a href="#/pick">← Change position</a>
+    <h1>${p.icon} What kind of ${p.name} are you?</h1>
+    <p>Pick your playing style. Every field session will include a ⭐ drill for it. You can change it anytime.</p>
+    <div class="grid">
+      ${Object.entries(ROLES[pos]).map(([id, r]) => `
+        <button class="card pick ${id === current ? "current" : ""}" data-role="${id}">
+          <h3>${r.name}</h3>
+          <p>${r.summary}</p>
+          <p><small><strong>Style drills:</strong> ${r.drills.map((d) => DRILLS[d].name).join(" · ")}</small></p>
+          ${id === current ? `<span class="tag">Current style</span>` : ""}
+        </button>`).join("")}
+      <button class="card pick ${current ? "" : "current"}" data-role="">
+        <h3>All-round</h3>
+        <p>No specific style yet. Stick with the standard ${p.name} program.</p>
+      </button>
+    </div>`;
+
+  app.querySelectorAll("[data-role]").forEach((btn) =>
+    btn.addEventListener("click", () => {
+      setRole(pos, btn.dataset.role);
+      location.hash = `#/position/${pos}`;
     })
   );
 }
@@ -754,6 +818,14 @@ function viewPosition(id) {
     <h1>${p.icon} ${p.name} Program</h1>
     <p>${p.summary}</p>
     <div>${p.traits.map((t) => `<span class="tag">${t}</span>`).join("")}</div>
+    ${(() => {
+      const role = getRole(id);
+      return role
+        ? `<div class="card style-card"><strong>⭐ Your style: ${role.name}</strong> <a href="#/style/${id}">change</a>
+            <p>${role.summary} Each field session includes a ⭐ ${role.name} drill.</p></div>`
+        : `<div class="card style-card"><strong>⭐ Pick your playing style</strong>
+            <p>Add drills for how you play. <a href="#/style/${id}">Choose a style →</a></p></div>`;
+    })()}
 
     ${age
       ? `<p><span class="tag cone">🎂 Tailored for age ${age} · ${group.stage}</span> <a href="#/age">change</a></p>`
@@ -772,7 +844,7 @@ function viewPosition(id) {
           const isDone = Boolean(done[sessionKey(id, w, s)]);
           const names = isGym
             ? POSITION_GYM[id].map((g) => pickVariant(g).name)
-            : fieldDrills(p.sessions[s]).map((d) => DRILLS[d].name);
+            : fieldDrills(id, s).map((d) => (d === styleDrill(id, s) ? `⭐ ${DRILLS[d].name}` : DRILLS[d].name));
           return `
             <div class="session ${isDone ? "done" : ""} ${isGym ? "gym" : ""}">
               <div>
@@ -1132,6 +1204,7 @@ function router() {
     pathway: viewPathway,
     age: viewAge,
     today: viewToday,
+    style: viewStyle,
     profile: viewProfile,
     progress: viewProgress,
   };
