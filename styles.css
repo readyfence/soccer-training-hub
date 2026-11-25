@@ -237,4 +237,68 @@ button.card.pick.current { border-color: var(--accent); }
 }
 .filters button.active { background: var(--green); color: #fff; }
 
+.muted { color: var(--muted); }
+
+.topbar nav a.age-badge { background: var(--accent); color: #222; }
+
+.age-card { margin-top: 20px; }
+.age-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin: 8px 0; }
+.age-form label { display: flex; flex-direction: column; font-weight: 600; font-size: 0.9rem; gap: 4px; }
+.age-form input, .bench input {
+  font: inherit;
+  padding: 8px 12px;
+  border: 2px solid #dbe5de;
+  border-radius: 10px;
+  width: 130px;
+}
+.age-form input:focus, .bench input:focus { outline: none; border-color: var(--green); }
+
+.load {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--green-light);
+}
+.load.full { background: #fff4d6; }
+.load.full .progress-bar > span { background: var(--accent); }
+.load.over { background: #fde4e1; }
+.load.over .progress-bar > span { background: #d93b2b; }
+
+.coach.warn { background: #fdecea; border-left-color: #d93b2b; }
+
+.gym-visual {
+  background: linear-gradient(135deg, #263238, #455a64);
+  color: #fff;
+  border-radius: var(--radius);
+  aspect-ratio: 4 / 3;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  font-weight: 600;
+  gap: 8px;
+}
+.gym-visual .big { font-size: 5rem; }
+
+.session.gym { border-left: 5px solid #455a64; }
+.session.gym.done { background: var(--green-light); }
+
+details summary { cursor: pointer; font-weight: 600; color: var(--green-dark); margin-top: 8px; }
+
+.pathway { display: grid; gap: 14px; }
+.stage { border-left: 5px solid #dbe5de; }
+.stage.current { border-left-color: var(--accent); box-shadow: 0 4px 18px rgba(245, 179, 1, 0.3); }
+.stage ul { margin: 6px 0 0; padding-left: 20px; }
+
+.bench {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #edf2ee;
+}
+.bench:last-child { border-bottom: none; }
+.bench-name { flex: 1; min-width: 200px; }
+.bench-status { min-width: 130px; font-weight: 600; }
+
 .footer { text-align: center; color: var(--muted); padding: 20px; font-size: 0.9rem; }

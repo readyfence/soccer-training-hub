@@ -257,6 +257,22 @@ const DRILLS = {
     cones: [[10, 37], [27, 37], [44, 37], [61, 37], [78, 37]],
     path: [[10, 45], [78, 45], [10, 30]],
   },
+  juggling: {
+    name: "Juggling Ladder",
+    category: "Ball Mastery",
+    minutes: 8,
+    equipment: "Ball",
+    setup: "Find a flat space about 5 yards square.",
+    steps: [
+      "Juggle with your right foot only, counting your best streak.",
+      "Then left foot only.",
+      "Alternate feet: right, left, right, left.",
+      "Challenge: feet, thighs, then a header if you're old enough.",
+    ],
+    coaching: "Lock your ankle, keep the ball spinning backwards, and use soft touches.",
+    cones: [[30, 25], [70, 25], [30, 55], [70, 55]],
+    path: [[50, 40], [50, 39]],
+  },
   oneVone: {
     name: "1v1 Cone Gates",
     category: "Attacking",
