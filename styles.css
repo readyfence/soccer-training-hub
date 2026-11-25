@@ -160,6 +160,21 @@ a.card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.1); transform: translateY(-2p
 }
 .quiz .option.selected .box { background: var(--green); border-color: var(--green); }
 .quiz .hint { color: var(--muted); margin-top: -8px; }
+.quiz .skip {
+  background: var(--green-light);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 600;
+}
+
+button.card.pick {
+  border: 2px solid transparent;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+button.card.pick:hover { border-color: var(--green); transform: translateY(-2px); transition: all 0.15s; }
+button.card.pick.current { border-color: var(--accent); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 
 .result-row { display: flex; align-items: center; gap: 12px; margin: 10px 0; }

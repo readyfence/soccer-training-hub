@@ -71,7 +71,8 @@ function viewHome() {
       <p>Find your best position, then follow a 4-week program of cone drills, technique work, and fitness built for that role.</p>
       <div class="btn-row">
         <a class="btn" href="#/finder">Find my position</a>
-        ${resume || `<a class="btn secondary" href="#/positions">Browse programs</a>`}
+        <a class="btn secondary" href="#/pick">I already know my position</a>
+        ${resume}
       </div>
     </section>
 
@@ -94,6 +95,7 @@ function viewFinder() {
     const isLast = step === QUIZ.length - 1;
     app.innerHTML = `
       <div class="quiz">
+        <p class="skip">Already know your position? <a href="#/pick">Pick it here →</a></p>
         <p class="stepper">Question ${step + 1} of ${QUIZ.length}</p>
         <div class="progress-bar"><span style="width:${(step / QUIZ.length) * 100}%"></span></div>
         <h2>${item.q}</h2>
@@ -171,6 +173,29 @@ function viewFinder() {
   }
 
   renderQuestion();
+}
+
+function viewPick() {
+  const current = localStorage.getItem(POS_KEY);
+  app.innerHTML = `
+    <h1>Choose your position</h1>
+    <p>Pick the position you play and we'll take you straight to its training program.
+      Not sure? <a href="#/finder">Take the Position Finder</a>.</p>
+    <div class="grid">
+      ${Object.entries(POSITIONS).map(([id, p]) => `
+        <button class="card pick ${id === current ? "current" : ""}" data-id="${id}">
+          <div class="icon">${p.icon}</div>
+          <h3>${p.name}</h3>
+          <p>${p.traits.join(" · ")}</p>
+          ${id === current ? `<span class="tag">Current position</span>` : ""}
+        </button>`).join("")}
+    </div>`;
+  app.querySelectorAll(".pick").forEach((btn) =>
+    btn.addEventListener("click", () => {
+      localStorage.setItem(POS_KEY, btn.dataset.id);
+      location.hash = `#/position/${btn.dataset.id}`;
+    })
+  );
 }
 
 function viewPositions() {
@@ -410,6 +435,7 @@ function router() {
   const routes = {
     "": viewHome,
     finder: viewFinder,
+    pick: viewPick,
     positions: viewPositions,
     position: viewPosition,
     session: viewSession,
