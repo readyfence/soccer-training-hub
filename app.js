@@ -445,9 +445,12 @@ function buildTodayPlan(date = new Date()) {
         `Do your <a href="#/drill/warmup">dynamic warm-up</a> before the match.`,
         "No extra training today. Save it all for the game.",
         "After: cool down, stretch, and eat protein + carbs within an hour.",
+        "After the game: log minutes, key actions, and one thing to improve in the match reflection below — it feeds tomorrow's tip.",
       ],
     };
   }
+
+  const reflectTip = typeof matchReflectionTip === "function" ? matchReflectionTip() : "";
 
   if (trainedToday()) {
     return {
@@ -456,6 +459,8 @@ function buildTodayPlan(date = new Date()) {
       todo: [
         "Stretch for 10 minutes (see the cool-down Mobility work in <a href=\"#/gym\">Gym</a>).",
         "Eat well and aim for quality sleep — tips on the <a href=\"#/recovery\">Recovery</a> page.",
+        "Tick anything you've earned on the Weekly Elite Plan checklist below.",
+        ...(reflectTip ? [reflectTip] : []),
       ],
     };
   }
@@ -470,6 +475,9 @@ function buildTodayPlan(date = new Date()) {
         "Extra sleep and plenty of water.",
         "No hard training. Your body rebuilds today.",
         `Read the <a href="#/recovery">Recovery guide</a> for sleep, nutrition, and cold-water tips.`,
+        ...(reflectTip
+          ? [reflectTip]
+          : ["If you haven't yet, fill in the after-match reflection below so tomorrow's tip is specific."]),
       ],
     };
   }
@@ -534,7 +542,8 @@ function buildTodayPlan(date = new Date()) {
   const session = sessionLink(pos, next);
   if (matchTomorrow) reasons.push("Match tomorrow: do just 1 set of each drill and stop well before you're tired.");
   reasons.push(`Next up in your ${POSITIONS[pos].name} program.`);
-  return { icon: next.idx === "gym" ? "🏋️" : "⚽", ...session, reasons };
+  const todo = reflectTip ? [reflectTip, "Work the Weekly Elite Plan checklist below alongside today's session."] : undefined;
+  return { icon: next.idx === "gym" ? "🏋️" : "⚽", ...session, reasons, ...(todo ? { todo } : {}) };
 }
 
 function todayCardHtml(plan) {
@@ -565,12 +574,15 @@ function viewHome() {
     : "";
   app.innerHTML = `
     <section class="hero">
-      <h1>Train like your position demands.</h1>
-      <p>From your first club team to going pro: find your position, then follow position-specific cone drills,
-        gym sessions and fitness work, all matched to your age.</p>
+      <h1>Elite preparation for serious pathway players.</h1>
+      <p>A structured daily and weekly system — position programs, gym, recovery, and scout-ready habits —
+        built to maximize your chance. Pair it with a real club and competitive minutes.</p>
+      <p class="honesty-inline">Going pro is rare. No app replaces scouts or guarantees a contract.
+        Consistency here is what separates players who are ready when the opportunity comes.</p>
       <div class="btn-row">
         <a class="btn" href="#/finder">Find my position</a>
         <a class="btn secondary" href="#/pick">I already know my position</a>
+        <a class="btn secondary" href="#/pathway">Pro Pathway</a>
         ${resume}
       </div>
     </section>
@@ -586,10 +598,10 @@ function viewHome() {
 
     <h2>How it works</h2>
     <div class="grid">
-      <div class="card"><div class="icon">🧭</div><h3>1. Find your position</h3><p>Take the quiz or pick the position you already play.</p></div>
-      <div class="card"><div class="icon">📅</div><h3>2. 4-week program</h3><p>3 field sessions and 1 gym session per week, getting harder each week.</p></div>
-      <div class="card"><div class="icon">🏋️</div><h3>3. Gym sessions</h3><p>Strength, power and injury prevention, with exercises matched to your age.</p></div>
-      <div class="card"><div class="icon">🚀</div><h3>4. Pro Pathway</h3><p>What to focus on at each age, plus fitness benchmarks to track against.</p></div>
+      <div class="card"><div class="icon">🧭</div><h3>1. Find your position</h3><p>Take the quiz or pick from the full 20-position set (and a playing style).</p></div>
+      <div class="card"><div class="icon">📅</div><h3>2. 4-week program</h3><p>3 field sessions and 1 gym session per week, getting harder each week — plus Pro Standard notes from 13+.</p></div>
+      <div class="card"><div class="icon">⭐</div><h3>3. Weekly Elite Plan</h3><p>Checklist beyond one session: practice intensity, 1v1/futsal, film, sleep, mobility, match notes.</p></div>
+      <div class="card"><div class="icon">🚀</div><h3>4. Pro Pathway + Scout toolkit</h3><p>Age stages, honest scouting tips, filming/ID-camp prep, and fitness benchmarks.</p></div>
       </div>`;
 }
 
@@ -614,6 +626,8 @@ function viewToday() {
         <a href="#/profile">your profile</a> for a more accurate plan.</div>` : ""}
     ${todayCardHtml(plan)}
     ${todayMealsHtml(plan)}
+    ${typeof eliteChecklistHtml === "function" ? eliteChecklistHtml() : ""}
+    ${typeof matchLogHtml === "function" ? matchLogHtml() : ""}
 
     <div class="grid" style="margin-top:16px">
       <div class="card">
@@ -625,9 +639,13 @@ function viewToday() {
         <h3>🚀 Pro tip ${country ? country.flag : ""}</h3>
         <p>${pathwayTipOfDay(profile)}</p>
       </div>
+      ${typeof parentCoachTipHtml === "function" ? parentCoachTipHtml() : ""}
     </div>
     ${loadMeterHtml()}
     <div class="btn-row"><a class="btn secondary small" href="#/profile">✏️ Update my profile</a></div>`;
+
+  if (typeof bindEliteChecklist === "function") bindEliteChecklist(() => viewToday());
+  if (typeof bindMatchLog === "function") bindMatchLog(() => viewToday());
 }
 
 function viewProfile() {
@@ -945,6 +963,7 @@ function viewPosition(rawId) {
     ${WEEK_INTENSITY.map((label, w) => `
       <div class="week">
         <h3>Week ${w + 1}: ${label} <span class="tag">${group.sets[w]} sets</span></h3>
+        ${typeof proStandardNoteHtml === "function" ? proStandardNoteHtml(w, group) : ""}
         ${slots.map((s) => {
           const isGym = s === "gym";
           const isDone = Boolean(done[sessionKey(id, w, s)]);
@@ -998,6 +1017,7 @@ function viewSession(rawPos, week, idx) {
       <a href="#/position/${pos}">← ${p.name} program</a>
       <p class="stepper">Week ${week + 1} · ${sessionName} · ${current + 1} of ${items.length}</p>
       <div class="progress-bar"><span style="width:${(current / items.length) * 100}%"></span></div>
+      ${current === 0 && typeof proStandardNoteHtml === "function" ? proStandardNoteHtml(week, ageGroup()) : ""}
       <h1>${item.title}</h1>
       <span class="tag ${item.category === "Cone Drill" ? "cone" : ""}">${item.category}</span>
       ${item.tags.map((t) => `<span class="tag">${t}</span>`).join("")}
@@ -1520,8 +1540,14 @@ function viewPathway() {
 
   app.innerHTML = `
     <h1>🚀 Pro Pathway</h1>
-    <p>Going pro takes years of consistent, smart training. Here's what to focus on at each stage.
+    <p>Maximize your chance with the habits serious pathway players use: club football, deliberate solo work,
+      recovery, and scout-ready organization.
       ${age ? "" : `<a href="#/age">Set your age</a> to highlight your stage.`}</p>
+    ${typeof honestyNoteHtml === "function" ? honestyNoteHtml() : ""}
+    <div class="btn-row">
+      <a class="btn" href="#/scout">🎬 Scout-ready toolkit</a>
+      <a class="btn secondary" href="#/today">⭐ Weekly Elite Plan</a>
+    </div>
 
     <div class="pathway">
       ${PATHWAY.map((s) => {
@@ -1544,8 +1570,14 @@ function viewPathway() {
         : `<p><a href="#/profile">Add your country</a> to see how players get scouted where you live.</p>`;
     })()}
 
+    <div class="card">
+      <h3>🎬 Scout-ready toolkit</h3>
+      <p>How to film highlights, ID camp / trials prep, what scouts look for by age, and an honest one-pager —
+        plus the anti-scam tips above. <a href="#/scout">Open the full toolkit →</a></p>
+    </div>
+
     <h2>📏 Fitness Benchmarks <span class="tag">${group.label}</span></h2>
-    <p>Rough targets for players on a pro track at your age. Test every 4–6 weeks and compare against your own past results most of all.</p>
+    <p>Rough targets for players chasing an elite pathway at your age. Test every 4–6 weeks and compare against your own past results most of all — not as a promise of going pro.</p>
     ${["u10", "u13"].includes(group.id) ? `<p class="muted">At your age, skill beats fitness. Juggling is the only benchmark for now.</p>` : ""}
     <div class="card">
       ${benchmarks.map((b) => {
@@ -1634,6 +1666,7 @@ function router() {
     recovery: viewRecovery,
     nutrition: viewNutrition,
     pathway: viewPathway,
+    scout: typeof viewScout === "function" ? viewScout : viewPathway,
     age: viewAge,
     today: viewToday,
     style: viewStyle,

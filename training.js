@@ -420,6 +420,7 @@ const PATHWAY = [
       "Play a lot. Street soccer, futsal, backyard games all count.",
       "Use both feet equally.",
       "Try every position, including goalkeeper.",
+      "Keep it fun — early love of the ball is what pathway players build on later.",
     ],
   },
   {
@@ -427,10 +428,11 @@ const PATHWAY = [
     stage: "Golden Age of Skill",
     hours: "4–6 hrs/week",
     goals: [
-      "Join a competitive club team.",
+      "Join a competitive club team — the app supports club football; it doesn't replace it.",
       "Master first touch, turning and 1v1 moves under pressure.",
       "Learn basic tactics: width, depth and support angles.",
       "Juggle 25+ touches in a row.",
+      "Stay multi-sport or free-play heavy; specialization can wait.",
     ],
   },
   {
@@ -438,11 +440,12 @@ const PATHWAY = [
     stage: "Train to Train",
     hours: "6–10 hrs/week",
     goals: [
-      "Try out for academy or elite club teams.",
+      "Try out for academy or elite club teams when ready — no paid 'guarantees.'",
       "Start supervised gym training with light loads.",
-      "Keep a training diary and start fitness testing.",
-      "Learn 2 positions well.",
+      "Keep a training diary, match reflections, and start fitness testing.",
+      "Learn 2 positions well; add weak-foot finishing and receiving under pressure.",
       "Watch pro games and study players in your position.",
+      "When weekly load allows, hit Pro Standard intensity notes in your program.",
     ],
   },
   {
@@ -450,11 +453,12 @@ const PATHWAY = [
     stage: "Train to Compete",
     hours: "10–15 hrs/week",
     goals: [
-      "Make a highlight video with your best clips.",
-      "Attend ID camps, showcases and college or academy trials.",
-      "Specialize in your main position.",
+      "Make an honest highlight video with your best clips (see Scout toolkit).",
+      "Attend legitimate ID camps, showcases and college or academy trials.",
+      "Specialize in your main position at match speed.",
       "Treat sleep (8–10 hrs), nutrition and recovery like training.",
-      "Keep your grades up, because college soccer is a major pathway to pro.",
+      "Keep your grades up — college soccer is a major pathway in many countries.",
+      "Going pro is still rare; maximize your chance with club minutes + consistency.",
     ],
   },
   {
@@ -462,10 +466,10 @@ const PATHWAY = [
     stage: "Train to Win",
     hours: "15–25 hrs/week",
     goals: [
-      "Trial with semi-pro and pro clubs, or play college soccer.",
+      "Trial with semi-pro and pro clubs, or play college soccer — real environments, real scouts.",
       "Work with a strength coach and track your load.",
       "Train your mental game: pressure, focus and confidence.",
-      "Be consistent. Pros show up every single day.",
+      "Be consistent. Pathway and pro players show up every single day.",
     ],
   },
 ];

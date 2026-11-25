@@ -288,6 +288,39 @@ const DRILLS = {
     cones: [[20, 15], [35, 15], [65, 15], [80, 15], [35, 65], [65, 65]],
     path: [[50, 65], [55, 40], [28, 15]],
   },
+  weakfoot: {
+    name: "Weak-Foot Finishing",
+    category: "Finishing",
+    minutes: 12,
+    equipment: "3 cones, balls, goal",
+    setup: "Place a cone 18–20 yards out and two cut cones at the top of the box.",
+    steps: [
+      "Dribble to the cut cone and shoot with your weaker foot only — 10 reps.",
+      "Receive a pass across your body and finish weak-foot first-time — 8 reps.",
+      "From a wider angle, cut inside onto the weak foot and aim far post — 8 reps.",
+      "Finish with 5 calm side-foot finishes into each corner (weak foot).",
+    ],
+    coaching: "Plant foot beside the ball, ankle locked, eyes on the ball at contact. Pathway attackers who score with both feet get selected more often.",
+    cones: [[50, 60], [35, 35], [65, 35]],
+    path: [[50, 70], [50, 60], [65, 35], [55, 12]],
+    goal: true,
+  },
+  pressurereceive: {
+    name: "Receiving Under Pressure",
+    category: "Receiving",
+    minutes: 10,
+    equipment: "4 cones, ball, partner (or wall + chasing cone)",
+    setup: "3-yard receive gate. Partner starts 2 yards behind you as a passive then active defender.",
+    steps: [
+      "Check away, then show for the ball while scanning both shoulders.",
+      "Receive with the foot furthest from pressure; take the touch into space.",
+      "Play a firm pass forward or turn away if the lane is open.",
+      "Progress: defender can touch you lightly, then fully compete for 30-second rounds.",
+    ],
+    coaching: "Know your next action before the ball arrives. Soft first touch + hard second action is the elite standard.",
+    cones: [[44, 48], [56, 48], [30, 22], [70, 22]],
+    path: [[50, 72], [50, 48], [30, 22]],
+  },
 };
 
 // Each position gets a 4-week program. Week focuses rotate; reps scale with WEEK_INTENSITY.
@@ -388,7 +421,7 @@ const POSITIONS = {
     summary: "Shields the defense, breaks up play, and recycles possession.",
     traits: ["Positioning", "Tackling", "Short passing", "Awareness"],
     sessions: [
-      ["warmup", "firsttouch", "gate"],
+      ["warmup", "firsttouch", "gate", "pressurereceive"],
       ["warmup", "shuffle", "box", "turning"],
       ["warmup", "distribution", "oneVone"],
     ],
@@ -399,9 +432,9 @@ const POSITIONS = {
     summary: "Links left-sided play: receives half-turned, progresses the ball, and supports both boxes.",
     traits: ["Vision", "Passing", "Stamina", "Half-space play"],
     sessions: [
-      ["warmup", "gate", "scanning"],
+      ["warmup", "gate", "scanning", "pressurereceive"],
       ["warmup", "firsttouch", "sprints", "turning"],
-      ["warmup", "distribution", "slalom", "finishing"],
+      ["warmup", "distribution", "slalom", "weakfoot"],
     ],
   },
   rcm: {
@@ -410,9 +443,9 @@ const POSITIONS = {
     summary: "Links right-sided play: receives half-turned, progresses the ball, and supports both boxes.",
     traits: ["Vision", "Passing", "Stamina", "Half-space play"],
     sessions: [
-      ["warmup", "scanning", "gate"],
+      ["warmup", "scanning", "gate", "pressurereceive"],
       ["warmup", "sprints", "firsttouch", "turning"],
-      ["warmup", "slalom", "distribution", "finishing"],
+      ["warmup", "slalom", "distribution", "weakfoot"],
     ],
   },
   cm: {
@@ -421,9 +454,9 @@ const POSITIONS = {
     summary: "Box-to-box engine who links defense and attack through the middle.",
     traits: ["Vision", "Passing range", "Stamina", "Ball control"],
     sessions: [
-      ["warmup", "gate", "turning"],
+      ["warmup", "gate", "turning", "pressurereceive"],
       ["warmup", "firsttouch", "sprints"],
-      ["warmup", "distribution", "slalom", "finishing"],
+      ["warmup", "distribution", "slalom", "weakfoot"],
     ],
   },
   lmid: {
@@ -433,8 +466,8 @@ const POSITIONS = {
     traits: ["Wide passing", "Crossing", "Work rate", "Link play"],
     sessions: [
       ["warmup", "gate", "crossing"],
-      ["warmup", "slalom", "firsttouch"],
-      ["warmup", "sprints", "zigzag", "finishing"],
+      ["warmup", "slalom", "pressurereceive"],
+      ["warmup", "sprints", "zigzag", "weakfoot"],
     ],
   },
   rmid: {
@@ -444,8 +477,8 @@ const POSITIONS = {
     traits: ["Wide passing", "Crossing", "Work rate", "Link play"],
     sessions: [
       ["warmup", "crossing", "gate"],
-      ["warmup", "firsttouch", "slalom"],
-      ["warmup", "zigzag", "sprints", "finishing"],
+      ["warmup", "pressurereceive", "slalom"],
+      ["warmup", "zigzag", "sprints", "weakfoot"],
     ],
   },
   cam: {
@@ -454,8 +487,8 @@ const POSITIONS = {
     summary: "The playmaker. Creates chances in tight spaces.",
     traits: ["Creativity", "Close control", "Through balls", "Long shots"],
     sessions: [
-      ["warmup", "slalom", "turning"],
-      ["warmup", "firsttouch", "finishing"],
+      ["warmup", "slalom", "turning", "pressurereceive"],
+      ["warmup", "firsttouch", "weakfoot"],
       ["warmup", "zigzag", "gate", "oneVone"],
     ],
   },
@@ -466,8 +499,8 @@ const POSITIONS = {
     traits: ["Pace", "Dribbling", "Crossing", "Cutting inside"],
     sessions: [
       ["warmup", "slalom", "crossing"],
-      ["warmup", "zigzag", "oneVone"],
-      ["warmup", "sprints", "finishing", "turning"],
+      ["warmup", "zigzag", "oneVone", "pressurereceive"],
+      ["warmup", "sprints", "weakfoot", "turning"],
     ],
   },
   rw: {
@@ -477,8 +510,8 @@ const POSITIONS = {
     traits: ["Pace", "Dribbling", "Crossing", "Cutting inside"],
     sessions: [
       ["warmup", "crossing", "slalom"],
-      ["warmup", "oneVone", "zigzag"],
-      ["warmup", "finishing", "sprints", "turning"],
+      ["warmup", "oneVone", "zigzag", "pressurereceive"],
+      ["warmup", "weakfoot", "sprints", "turning"],
     ],
   },
   ss: {
@@ -487,8 +520,8 @@ const POSITIONS = {
     summary: "Plays off the main striker: turns, links, and finishes from the second wave.",
     traits: ["Through balls", "Turning", "Finishing", "Link play"],
     sessions: [
-      ["warmup", "turning", "throughball"],
-      ["warmup", "firsttouch", "finishing"],
+      ["warmup", "turning", "throughball", "pressurereceive"],
+      ["warmup", "firsttouch", "weakfoot"],
       ["warmup", "slalom", "oneVone", "finishing"],
     ],
   },
@@ -499,8 +532,8 @@ const POSITIONS = {
     traits: ["Finishing", "Hold-up play", "Poaching", "Aerial presence"],
     sessions: [
       ["warmup", "finishing", "holdup"],
-      ["warmup", "poacher", "heading", "firsttouch"],
-      ["warmup", "oneVone", "sprints", "finishing"],
+      ["warmup", "poacher", "heading", "pressurereceive"],
+      ["warmup", "oneVone", "sprints", "weakfoot"],
     ],
   },
   st: {
@@ -509,8 +542,8 @@ const POSITIONS = {
     summary: "Finishes chances, holds up play, and makes runs in behind.",
     traits: ["Finishing", "Movement", "Heading", "Hold-up play"],
     sessions: [
-      ["warmup", "finishing", "turning"],
-      ["warmup", "heading", "firsttouch"],
+      ["warmup", "finishing", "turning", "weakfoot"],
+      ["warmup", "heading", "pressurereceive"],
       ["warmup", "oneVone", "sprints", "finishing"],
     ],
   },

@@ -190,6 +190,8 @@ const UNIVERSAL_PATHWAY_TIPS = [
   "Never pay anyone to get you a trial. Real scouts and clubs don't charge for that.",
   "Agents must be FIFA-licensed. Ask for their licence number and check it.",
   "Film your games. A good highlight video opens doors in every country.",
+  "Going pro is rare. Maximize your chance with a real club, competitive minutes, and daily/weekly habits — not shortcuts.",
+  "App work + club practice + sleep beats random extra grinding that leaves you flat on match day.",
 ];
 
 const SEASON_TEXT = {
