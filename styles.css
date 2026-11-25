@@ -301,6 +301,59 @@ button.card.pick.current { border-color: var(--accent); }
 }
 .recovery-card .coach.warn { margin-top: 12px; }
 
+.nutrition-locked { border-left: 5px solid var(--accent); }
+.nutrition-teaser, .nutrition-today { margin-top: 16px; }
+.nutrition-suggest {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+@media (min-width: 640px) {
+  .nutrition-suggest { grid-template-columns: repeat(3, 1fr); }
+}
+.nutrition-chip {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 2px solid #dbe5de;
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  background: #fff;
+}
+.nutrition-chip:hover { border-color: var(--green); }
+.nutrition-chip span:first-child { font-size: 1.6rem; }
+.nutrition-form fieldset, .nutrition-profile fieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 12px;
+}
+.nutrition-form legend, .nutrition-profile legend {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.nutrition-row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr 1fr;
+}
+.nutrition-list { display: grid; gap: 12px; margin: 12px 0 24px; }
+.recipe-card summary { list-style: none; }
+.recipe-card summary::-webkit-details-marker { display: none; }
+.recipe-summary {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.recipe-summary .icon { font-size: 1.8rem; line-height: 1; }
+.recipe-why {
+  background: var(--green-light);
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+.nutrition-focus { margin: 12px 0; }
+
 .session.gym { border-left: 5px solid #455a64; }
 .session.gym.done { background: var(--green-light); }
 

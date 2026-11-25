@@ -637,6 +637,8 @@ function viewProfile() {
           ${gymSetupSummary()}
         </div>
 
+        ${profileNutritionCardHtml()}
+
         <div class="btn-row">
           <button class="btn" type="submit">Save & see today's plan</button>
         </div>
@@ -647,6 +649,7 @@ function viewProfile() {
     e.preventDefault();
     const form = new FormData(e.target);
     const matchDays = form.getAll("matchDays").map(Number);
+    const age = Number(form.get("age"));
     localStorage.setItem(PROFILE_KEY, JSON.stringify({
       country: form.get("country"),
       teamDays: form.getAll("teamDays").map(Number).filter((d) => !matchDays.includes(d)),
@@ -656,6 +659,9 @@ function viewProfile() {
     }));
     localStorage.setItem(AGE_KEY, form.get("age"));
     localStorage.setItem(POS_KEY, form.get("position"));
+    if (nutritionEligible(age) && form.has("dietStyle")) {
+      saveNutritionFromForm(form);
+    }
     location.hash = "#/today";
   });
 }
@@ -1029,8 +1035,224 @@ function viewRecovery() {
     <div class="card" style="margin-top:20px">
       <h3>After today's session</h3>
       <p>Light jog or walk → Mobility stretches in the <a href="#/gym">Gym library</a> → snack + water → early night.
-        Match-day or rest-day plans also live on <a href="#/today">Today</a>.</p>
+        Match-day or rest-day plans also live on <a href="#/today">Today</a>.
+        Ages 16+ can open the <a href="#/nutrition">Nutrition</a> page for meal ideas.</p>
     </div>`;
+}
+
+function recipeCardHtml(r, { open = false } = {}) {
+  const meal = MEAL_TYPES.find((m) => m.id === r.mealType);
+  const tags = [
+    meal ? `${meal.icon} ${meal.label}` : r.mealType,
+    `${r.minutes} min`,
+    ...r.diets.slice(0, 2),
+    r.glutenFree ? "GF" : null,
+    r.halalFriendly ? "halal-friendly" : null,
+  ].filter(Boolean);
+  return `
+    <details class="card recipe-card" ${open ? "open" : ""} id="recipe-${r.id}">
+      <summary>
+        <span class="recipe-summary">
+          <span class="icon">${r.icon}</span>
+          <span>
+            <strong>${r.name}</strong>
+            <span class="muted">${tags.map((t) => `<span class="tag">${t}</span>`).join(" ")}</span>
+          </span>
+        </span>
+      </summary>
+      <p class="recipe-why"><strong>Why it helps:</strong> ${r.why}</p>
+      <h4>Ingredients</h4>
+      <ul>${r.ingredients.map((i) => `<li>${i}</li>`).join("")}</ul>
+      <h4>Steps</h4>
+      <ol>${r.steps.map((s) => `<li>${s}</li>`).join("")}</ol>
+      <p class="muted">Home-cook sports nutrition tip — not medical advice.</p>
+    </details>`;
+}
+
+function nutritionPrefsFieldsHtml(prefs = getNutritionPrefs()) {
+  return `
+    <fieldset>
+      <legend>Diet style</legend>
+      <div class="days diet-styles">
+        ${DIET_STYLES.map((d) => `
+          <label class="choice day">
+            <input type="radio" name="dietStyle" value="${d.id}" ${prefs.style === d.id ? "checked" : ""} required />
+            ${d.label}
+          </label>`).join("")}
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Extra preferences</legend>
+      <div class="days">
+        ${DIET_TAGS.map((t) => `
+          <label class="choice day">
+            <input type="checkbox" name="dietTags" value="${t.id}" ${(prefs.tags || []).includes(t.id) ? "checked" : ""} />
+            ${t.label}
+          </label>`).join("")}
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Avoid / allergies</legend>
+      <div class="days">
+        ${AVOID_OPTIONS.map((a) => `
+          <label class="choice day">
+            <input type="checkbox" name="dietAvoid" value="${a.id}" ${(prefs.avoid || []).includes(a.id) ? "checked" : ""} />
+            ${a.label}
+          </label>`).join("")}
+      </div>
+    </fieldset>
+    <div class="nutrition-row">
+      <label>Spice
+        <select name="dietSpice">
+          ${SPICE_OPTIONS.map((s) => `<option value="${s.id}" ${prefs.spice === s.id ? "selected" : ""}>${s.label}</option>`).join("")}
+        </select>
+      </label>
+      <label>Cooking time
+        <select name="dietMaxMinutes">
+          ${COOK_TIME_OPTIONS.map((c) => `<option value="${c.id}" ${Number(prefs.maxMinutes) === c.id ? "selected" : ""}>${c.label}</option>`).join("")}
+        </select>
+      </label>
+    </div>`;
+}
+
+function nutritionPrefsFormHtml(prefs = getNutritionPrefs(), { id = "nutritionForm" } = {}) {
+  return `
+    <form id="${id}" class="nutrition-form profile-form">
+      ${nutritionPrefsFieldsHtml(prefs)}
+      <div class="btn-row">
+        <button class="btn" type="submit">Save meal preferences</button>
+      </div>
+    </form>`;
+}
+
+function saveNutritionFromForm(form) {
+  saveNutritionPrefs({
+    style: form.get("dietStyle") || "omnivore",
+    tags: form.getAll("dietTags"),
+    avoid: form.getAll("dietAvoid"),
+    spice: form.get("dietSpice") || "medium",
+    maxMinutes: Number(form.get("dietMaxMinutes")) || 50,
+  });
+}
+
+function profileNutritionCardHtml() {
+  const age = getAge();
+  if (!nutritionEligible(age)) {
+    return `
+      <div class="card nutrition-locked">
+        <h3>🍽️ Nutrition</h3>
+        <p>Full meal planning and recipe filters unlock at <strong>age 16</strong> (U19 / pro groups).
+          Until then: ${YOUNG_NUTRITION_TIPS[0]}</p>
+        <p class="muted"><a href="#/nutrition">See a simple tip on the Nutrition page</a></p>
+      </div>`;
+  }
+  const prefs = getNutritionPrefs();
+  const style = DIET_STYLES.find((d) => d.id === prefs.style)?.label || prefs.style;
+  return `
+    <div class="card nutrition-profile">
+      <h3>🍽️ Nutrition preferences</h3>
+      <p class="muted">Saved with your profile for recipe filters. Current: <strong>${style}</strong>
+        ${(prefs.avoid || []).length ? ` · avoid ${prefs.avoid.join(", ")}` : ""}
+        ${(prefs.tags || []).length ? ` · ${prefs.tags.join(", ")}` : ""}</p>
+      ${nutritionPrefsFieldsHtml(prefs)}
+      <p class="muted"><a href="#/nutrition">Browse filtered recipes →</a></p>
+    </div>`;
+}
+
+function todayMealsHtml(plan) {
+  if (!nutritionEligible()) {
+    return `
+      <div class="card nutrition-teaser">
+        <h3>🍽️ Fuel tip</h3>
+        <p>${YOUNG_NUTRITION_TIPS[1]} Full meal plans unlock at 16 — <a href="#/nutrition">learn more</a>.</p>
+      </div>`;
+  }
+  const suggestions = suggestRecipes(plan, 3);
+  const meal = MEAL_TYPES.find((m) => m.id === mealTypeForTodayPlan(plan));
+  if (!suggestions.length) {
+    return `
+      <div class="card nutrition-teaser">
+        <h3>🍽️ Meals for today</h3>
+        <p>No recipes match your filters. <a href="#/nutrition">Relax preferences</a> to see ideas.</p>
+      </div>`;
+  }
+  return `
+    <div class="card nutrition-today">
+      <h3>🍽️ Suggested meals ${meal ? `· ${meal.label}` : ""}</h3>
+      <p class="muted">Matched to your diet prefs and today's plan. <a href="#/nutrition">All recipes</a></p>
+      <div class="nutrition-suggest">
+        ${suggestions.map((r) => `
+          <a class="nutrition-chip" href="#/nutrition/${r.id}">
+            <span>${r.icon}</span>
+            <span><strong>${r.name}</strong><br/><span class="muted">${r.minutes} min</span></span>
+          </a>`).join("")}
+      </div>
+    </div>`;
+}
+
+let nutritionMealFilter = "all";
+
+function viewNutrition(focusId) {
+  const age = getAge();
+  const eligible = nutritionEligible(age);
+
+  if (!eligible) {
+    app.innerHTML = `
+      <h1>🍽️ Nutrition</h1>
+      <div class="card nutrition-locked">
+        <h3>Meal planning unlocks at 16</h3>
+        <p>You're in the ${age ? ageGroup().label : "younger"} stage — keep meals simple and regular.
+          Detailed diet filters and the recipe library open with the <strong>16–18 (U19)</strong> and <strong>19+</strong> groups.</p>
+        <ul class="todo">${YOUNG_NUTRITION_TIPS.map((t) => `<li>${t}</li>`).join("")}</ul>
+        ${!age ? `<p><a href="#/profile">Set your age</a> so we know when to unlock this.</p>` : `<p class="muted">Current age: ${age}. Hang in there — smarter fueling tools are coming soon.</p>`}
+        <div class="btn-row"><a class="btn secondary" href="#/recovery">Recovery tips</a></div>
+      </div>`;
+    return;
+  }
+
+  const prefs = getNutritionPrefs();
+  const mealType = nutritionMealFilter === "all" ? null : nutritionMealFilter;
+  const list = filterRecipes(prefs, mealType);
+  const focus = focusId && RECIPES.find((r) => r.id === focusId);
+
+  app.innerHTML = `
+    <h1>🍽️ Nutrition</h1>
+    <p>Athlete-focused home-cook meals for ages 16+. Filters follow your diet style and avoid list.
+      General sports nutrition only — not medical advice.
+      ${age ? `Tuned for age <strong>${age}</strong> (${ageGroup().label}).` : ""}</p>
+
+    <div class="card">
+      <h3>Your diet & preferences</h3>
+      ${nutritionPrefsFormHtml(prefs)}
+    </div>
+
+    <div class="filters" id="mealFilters">
+      <button type="button" data-meal="all" class="${!mealType ? "active" : ""}">All (${filterRecipes(prefs).length})</button>
+      ${MEAL_TYPES.map((m) => {
+        const n = filterRecipes(prefs, m.id).length;
+        return `<button type="button" data-meal="${m.id}" class="${mealType === m.id ? "active" : ""}">${m.icon} ${m.label} (${n})</button>`;
+      }).join("")}
+    </div>
+
+    ${focus ? `<div class="nutrition-focus">${recipeCardHtml(focus, { open: true })}</div>` : ""}
+
+    <h2>${list.length} recipe${list.length === 1 ? "" : "s"}</h2>
+    ${list.length
+      ? `<div class="nutrition-list">${list.map((r) => recipeCardHtml(r, { open: focusId === r.id })).join("")}</div>`
+      : `<div class="coach warn">Nothing matches. Try removing an avoid tag, raising cook time, or switching diet style.</div>`}
+    <p class="muted">Also linked from <a href="#/today">Today</a> suggestions and <a href="#/profile">Profile</a>.</p>`;
+
+  document.getElementById("nutritionForm")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    saveNutritionFromForm(new FormData(e.target));
+    viewNutrition(focusId);
+  });
+  app.querySelectorAll("#mealFilters button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      nutritionMealFilter = btn.dataset.meal;
+      viewNutrition(focusId);
+    });
+  });
 }
 
 function viewSessionComplete(pos, week, sessionName) {
@@ -1301,6 +1523,7 @@ function router() {
     gym: viewGym,
     "gym-setup": viewGymSetup,
     recovery: viewRecovery,
+    nutrition: viewNutrition,
     pathway: viewPathway,
     age: viewAge,
     today: viewToday,
