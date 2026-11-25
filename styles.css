@@ -333,6 +333,54 @@ button.card.pick.current { border-color: var(--accent); }
   font-weight: 700;
   margin-bottom: 8px;
 }
+.diet-text-label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.diet-text-input {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  font: inherit;
+  padding: 10px 12px;
+  border: 2px solid #dbe5de;
+  border-radius: 10px;
+  background: #fff;
+}
+.diet-text-input:focus {
+  outline: none;
+  border-color: var(--green);
+}
+.diet-text-hint { margin: 6px 0 8px; }
+.diet-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.diet-phrase {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 4px 10px;
+  border: 1px solid #dbe5de;
+  border-radius: 999px;
+  background: #f7faf8;
+  color: inherit;
+  cursor: pointer;
+}
+.diet-phrase:hover {
+  border-color: var(--green);
+  background: var(--green-light);
+}
+.diet-understood {
+  margin: 0 0 12px;
+  line-height: 1.7;
+}
+.diet-eval-chip {
+  display: inline-block;
+  margin: 2px 2px 2px 0;
+}
 .nutrition-row {
   display: grid;
   gap: 12px;

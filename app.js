@@ -645,7 +645,9 @@ function viewProfile() {
       </form>
     </div>`;
 
-  document.getElementById("profileForm").addEventListener("submit", (e) => {
+  const profileForm = document.getElementById("profileForm");
+  bindDietTextEvaluator(profileForm);
+  profileForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const form = new FormData(e.target);
     const matchDays = form.getAll("matchDays").map(Number);
@@ -659,7 +661,7 @@ function viewProfile() {
     }));
     localStorage.setItem(AGE_KEY, form.get("age"));
     localStorage.setItem(POS_KEY, form.get("position"));
-    if (nutritionEligible(age) && form.has("dietStyle")) {
+    if (nutritionEligible(age) && form.has("dietText")) {
       saveNutritionFromForm(form);
     }
     location.hash = "#/today";
@@ -1069,38 +1071,73 @@ function recipeCardHtml(r, { open = false } = {}) {
     </details>`;
 }
 
+function liveDietPrefsFromFields(root) {
+  const textEl = root.querySelector('[name="dietText"]');
+  const spiceEl = root.querySelector('[name="dietSpice"]');
+  const minsEl = root.querySelector('[name="dietMaxMinutes"]');
+  return evaluateDietText(textEl?.value || "", {
+    spice: spiceEl?.value || undefined,
+    maxMinutes: minsEl?.value || undefined,
+  });
+}
+
+function refreshDietUnderstood(root) {
+  const prefs = liveDietPrefsFromFields(root);
+  const spiceEl = root.querySelector('[name="dietSpice"]');
+  const minsEl = root.querySelector('[name="dietMaxMinutes"]');
+  if (spiceEl && prefs.spice) spiceEl.value = prefs.spice;
+  if (minsEl && prefs.maxMinutes) minsEl.value = String(prefs.maxMinutes);
+  const host = root.querySelector("[data-diet-understood]");
+  if (!host) return;
+  const wrap = document.createElement("div");
+  wrap.innerHTML = dietUnderstoodHtml(prefs);
+  host.replaceWith(wrap.firstElementChild);
+}
+
+function bindDietTextEvaluator(root) {
+  if (!root) return;
+  const input = root.querySelector('[name="dietText"]');
+  const spice = root.querySelector('[name="dietSpice"]');
+  const mins = root.querySelector('[name="dietMaxMinutes"]');
+  const onChange = () => refreshDietUnderstood(root);
+  input?.addEventListener("input", onChange);
+  spice?.addEventListener("change", onChange);
+  mins?.addEventListener("change", onChange);
+  root.querySelectorAll("[data-diet-phrase]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (!input) return;
+      const phrase = btn.dataset.dietPhrase || "";
+      const cur = input.value.trim();
+      const lower = cur.toLowerCase();
+      if (lower.includes(phrase.toLowerCase())) {
+        input.focus();
+        return;
+      }
+      input.value = cur ? `${cur}, ${phrase}` : phrase;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.focus();
+    });
+  });
+}
+
 function nutritionPrefsFieldsHtml(prefs = getNutritionPrefs()) {
+  const dietText = prefs.dietText || synthesizeDietText(prefs);
+  const preview = evaluateDietText(dietText, {
+    spice: prefs.spice,
+    maxMinutes: prefs.maxMinutes,
+  });
   return `
-    <fieldset>
-      <legend>Diet style</legend>
-      <div class="days diet-styles">
-        ${DIET_STYLES.map((d) => `
-          <label class="choice day">
-            <input type="radio" name="dietStyle" value="${d.id}" ${prefs.style === d.id ? "checked" : ""} required />
-            ${d.label}
-          </label>`).join("")}
-      </div>
-    </fieldset>
-    <fieldset>
-      <legend>Extra preferences</legend>
-      <div class="days">
-        ${DIET_TAGS.map((t) => `
-          <label class="choice day">
-            <input type="checkbox" name="dietTags" value="${t.id}" ${(prefs.tags || []).includes(t.id) ? "checked" : ""} />
-            ${t.label}
-          </label>`).join("")}
-      </div>
-    </fieldset>
-    <fieldset>
-      <legend>Avoid / allergies</legend>
-      <div class="days">
-        ${AVOID_OPTIONS.map((a) => `
-          <label class="choice day">
-            <input type="checkbox" name="dietAvoid" value="${a.id}" ${(prefs.avoid || []).includes(a.id) ? "checked" : ""} />
-            ${a.label}
-          </label>`).join("")}
-      </div>
-    </fieldset>
+    <label class="diet-text-label">Type your diet
+      <input type="text" name="dietText" class="diet-text-input" autocomplete="off"
+        placeholder="e.g. vegetarian, no dairy · pescatarian high protein · halal gluten free"
+        value="${escapeAttr(dietText)}" />
+    </label>
+    <p class="muted diet-text-hint">Free text is evaluated for style, allergies, spice, and cook time. Tap a helper to add it:</p>
+    <div class="diet-quick" role="group" aria-label="Diet helpers">
+      ${DIET_QUICK_PHRASES.map((p) => `
+        <button type="button" class="diet-phrase" data-diet-phrase="${escapeAttr(p)}">${p}</button>`).join("")}
+    </div>
+    ${dietUnderstoodHtml(preview)}
     <div class="nutrition-row">
       <label>Spice
         <select name="dietSpice">
@@ -1115,6 +1152,13 @@ function nutritionPrefsFieldsHtml(prefs = getNutritionPrefs()) {
     </div>`;
 }
 
+function escapeAttr(s) {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;");
+}
+
 function nutritionPrefsFormHtml(prefs = getNutritionPrefs(), { id = "nutritionForm" } = {}) {
   return `
     <form id="${id}" class="nutrition-form profile-form">
@@ -1126,12 +1170,17 @@ function nutritionPrefsFormHtml(prefs = getNutritionPrefs(), { id = "nutritionFo
 }
 
 function saveNutritionFromForm(form) {
+  const evaluated = evaluateDietText(form.get("dietText") || "", {
+    spice: form.get("dietSpice") || undefined,
+    maxMinutes: form.get("dietMaxMinutes") || undefined,
+  });
   saveNutritionPrefs({
-    style: form.get("dietStyle") || "omnivore",
-    tags: form.getAll("dietTags"),
-    avoid: form.getAll("dietAvoid"),
-    spice: form.get("dietSpice") || "medium",
-    maxMinutes: Number(form.get("dietMaxMinutes")) || 50,
+    dietText: evaluated.dietText,
+    style: evaluated.style,
+    tags: evaluated.tags,
+    avoid: evaluated.avoid,
+    spice: form.get("dietSpice") || evaluated.spice || "medium",
+    maxMinutes: Number(form.get("dietMaxMinutes")) || evaluated.maxMinutes || 50,
   });
 }
 
@@ -1147,13 +1196,11 @@ function profileNutritionCardHtml() {
       </div>`;
   }
   const prefs = getNutritionPrefs();
-  const style = DIET_STYLES.find((d) => d.id === prefs.style)?.label || prefs.style;
+  const summary = dietUnderstoodLabels(prefs).join(" · ") || "Omnivore";
   return `
     <div class="card nutrition-profile">
       <h3>🍽️ Nutrition preferences</h3>
-      <p class="muted">Saved with your profile for recipe filters. Current: <strong>${style}</strong>
-        ${(prefs.avoid || []).length ? ` · avoid ${prefs.avoid.join(", ")}` : ""}
-        ${(prefs.tags || []).length ? ` · ${prefs.tags.join(", ")}` : ""}</p>
+      <p class="muted">Type your diet — we evaluate it for recipe filters. Current: <strong>${summary}</strong></p>
       ${nutritionPrefsFieldsHtml(prefs)}
       <p class="muted"><a href="#/nutrition">Browse filtered recipes →</a></p>
     </div>`;
@@ -1217,7 +1264,7 @@ function viewNutrition(focusId) {
 
   app.innerHTML = `
     <h1>🍽️ Nutrition</h1>
-    <p>Athlete-focused home-cook meals for ages 16+. Filters follow your diet style and avoid list.
+    <p>Athlete-focused home-cook meals for ages 16+. Type your diet — we evaluate it for recipe filters.
       General sports nutrition only — not medical advice.
       ${age ? `Tuned for age <strong>${age}</strong> (${ageGroup().label}).` : ""}</p>
 
@@ -1239,10 +1286,12 @@ function viewNutrition(focusId) {
     <h2>${list.length} recipe${list.length === 1 ? "" : "s"}</h2>
     ${list.length
       ? `<div class="nutrition-list">${list.map((r) => recipeCardHtml(r, { open: focusId === r.id })).join("")}</div>`
-      : `<div class="coach warn">Nothing matches. Try removing an avoid tag, raising cook time, or switching diet style.</div>`}
+      : `<div class="coach warn">Nothing matches. Try a broader diet description, fewer avoids, or a longer cook time.</div>`}
     <p class="muted">Also linked from <a href="#/today">Today</a> suggestions and <a href="#/profile">Profile</a>.</p>`;
 
-  document.getElementById("nutritionForm")?.addEventListener("submit", (e) => {
+  const nutritionForm = document.getElementById("nutritionForm");
+  bindDietTextEvaluator(nutritionForm);
+  nutritionForm?.addEventListener("submit", (e) => {
     e.preventDefault();
     saveNutritionFromForm(new FormData(e.target));
     viewNutrition(focusId);

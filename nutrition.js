@@ -45,12 +45,186 @@ const MEAL_TYPES = [
 ];
 
 const DEFAULT_NUTRITION = {
+  dietText: "",
   style: "omnivore",
   tags: [],
   avoid: [],
   spice: "medium",
   maxMinutes: 50,
 };
+
+/** Quick phrases users can tap into the diet text field. */
+const DIET_QUICK_PHRASES = [
+  "omnivore",
+  "vegetarian",
+  "pescatarian",
+  "vegan",
+  "gluten free",
+  "dairy free",
+  "halal",
+  "no nuts",
+  "mild spice",
+  "under 30 min",
+];
+
+/**
+ * Parse free-text diet description into structured prefs for recipe filtering.
+ * Synonyms: plant-based→vegan, veggie→vegetarian, fish-only→pescatarian, etc.
+ */
+function evaluateDietText(text, overrides = {}) {
+  const raw = String(text || "").trim();
+  const t = raw.toLowerCase().replace(/[_/]+/g, " ");
+
+  let style = "omnivore";
+  const tags = [];
+  const avoid = [];
+  let spice = "medium";
+  let maxMinutes = 50;
+  let spiceFromText = false;
+  let minutesFromText = false;
+
+  // Styles — most restrictive / specific first
+  if (/\b(vegan|plant[\s-]*based|no\s+animal)\b/.test(t)) {
+    style = "vegan";
+  } else if (/\b(pescatarian|pesco[\s-]*tarian|fish[\s-]*only|seafood[\s-]*only)\b/.test(t)) {
+    style = "pescatarian";
+  } else if (/\b(vegetarian|veggie|meat[\s-]*free|no\s+meat)\b/.test(t)) {
+    style = "vegetarian";
+  } else if (/\b(omnivore|everything|no\s+restrictions|eat\s+everything)\b/.test(t)) {
+    style = "omnivore";
+  }
+
+  // Tags + linked avoids
+  if (/\b(gluten[\s-]*free|no\s+gluten|celiac|\bgf\b)\b/.test(t) || /\bwheat[\s-]*free\b/.test(t)) {
+    tags.push("glutenFree");
+    avoid.push("gluten");
+  }
+  if (/\bhalal\b/.test(t)) {
+    tags.push("halalFriendly");
+    avoid.push("pork");
+  }
+
+  // Avoid / allergies
+  if (/\b(dairy[\s-]*free|no\s+dairy|without\s+dairy|lactose|no\s+milk|milk[\s-]*free)\b/.test(t)) {
+    avoid.push("dairy");
+  }
+  if (/\b(nut[\s-]*free|no\s+nuts|without\s+nuts|tree[\s-]*nut|peanut)\b/.test(t)) {
+    avoid.push("nuts");
+  }
+  if (/\b(egg[\s-]*free|no\s+eggs?|without\s+eggs?)\b/.test(t)) {
+    avoid.push("eggs");
+  }
+  if (/\b(shellfish[\s-]*free|no\s+shellfish|avoid\s+shellfish|allergic\s+to\s+shellfish|no\s+shrimp|no\s+crab|no\s+lobster)\b/.test(t)) {
+    avoid.push("shellfish");
+  }
+  if (/\b(no\s+pork|pork[\s-]*free|without\s+pork)\b/.test(t)) {
+    avoid.push("pork");
+  }
+  if (/\b(no\s+wheat|wheat[\s-]*free|avoid\s+gluten|no\s+barley|no\s+rye)\b/.test(t)) {
+    avoid.push("gluten");
+    if (!tags.includes("glutenFree")) tags.push("glutenFree");
+  }
+
+  // Spice
+  if (/\b(mild|no\s+spice|no\s+heat|not\s+spicy|low\s+spice)\b/.test(t)) {
+    spice = "mild";
+    spiceFromText = true;
+  } else if (/\b(spicy|hot\s+spice|i\s+like\s+heat|extra\s+hot|chili|chilli)\b/.test(t)) {
+    spice = "hot";
+    spiceFromText = true;
+  } else if (/\b(medium\s+spice|medium\s+heat)\b/.test(t)) {
+    spice = "medium";
+    spiceFromText = true;
+  }
+
+  // Cook time
+  if (/\b(under\s*20|under\s*15|quick|15\s*min|20\s*min|fast\s+cook)\b/.test(t)) {
+    maxMinutes = 20;
+    minutesFromText = true;
+  } else if (/\b(under\s*30|under\s*35|30\s*min|35\s*min)\b/.test(t)) {
+    maxMinutes = 35;
+    minutesFromText = true;
+  } else if (/\b(under\s*45|under\s*50|45\s*min|50\s*min)\b/.test(t)) {
+    maxMinutes = 50;
+    minutesFromText = true;
+  } else if (/\b(any\s+time|no\s+time\s+limit|slow\s+cook|90\s*min)\b/.test(t)) {
+    maxMinutes = 90;
+    minutesFromText = true;
+  }
+
+  // Form selects fill gaps; typed spice / cook time wins when present
+  if (overrides.style) style = overrides.style;
+  if (Array.isArray(overrides.tags)) {
+    for (const x of overrides.tags) if (!tags.includes(x)) tags.push(x);
+  }
+  if (Array.isArray(overrides.avoid)) {
+    for (const x of overrides.avoid) if (!avoid.includes(x)) avoid.push(x);
+  }
+  if (overrides.spice && !spiceFromText) spice = overrides.spice;
+  if (overrides.maxMinutes != null && overrides.maxMinutes !== "" && !minutesFromText) {
+    maxMinutes = Number(overrides.maxMinutes) || maxMinutes;
+  }
+
+  return {
+    dietText: raw,
+    style,
+    tags: [...new Set(tags)],
+    avoid: [...new Set(avoid)],
+    spice,
+    maxMinutes,
+  };
+}
+
+/** Human-readable chips for what the evaluator understood. */
+function dietUnderstoodLabels(prefs = {}) {
+  const labels = [];
+  const style = DIET_STYLES.find((d) => d.id === prefs.style);
+  if (style) labels.push(style.label);
+  for (const id of prefs.tags || []) {
+    const tag = DIET_TAGS.find((t) => t.id === id);
+    if (tag) labels.push(tag.label);
+  }
+  for (const id of prefs.avoid || []) {
+    const opt = AVOID_OPTIONS.find((a) => a.id === id);
+    labels.push(opt ? `Avoid ${opt.label.toLowerCase()}` : `Avoid ${id}`);
+  }
+  const spice = SPICE_OPTIONS.find((s) => s.id === prefs.spice);
+  if (spice && prefs.spice !== "medium") labels.push(spice.label);
+  const cook = COOK_TIME_OPTIONS.find((c) => c.id === Number(prefs.maxMinutes));
+  if (cook && Number(prefs.maxMinutes) !== 50) labels.push(cook.label);
+  return labels;
+}
+
+function dietUnderstoodHtml(prefs) {
+  const labels = dietUnderstoodLabels(prefs);
+  if (!labels.length) {
+    return `<p class="diet-understood muted" data-diet-understood>Type a diet (e.g. “vegetarian, no dairy”) — we’ll show what we match.</p>`;
+  }
+  return `<p class="diet-understood" data-diet-understood><span class="muted">We understood:</span> ${
+    labels.map((l) => `<span class="tag diet-eval-chip">${l}</span>`).join(" ")
+  }</p>`;
+}
+
+/** Build a starter phrase from legacy structured prefs (no dietText yet). */
+function synthesizeDietText(prefs = {}) {
+  if (prefs.dietText) return prefs.dietText;
+  const parts = [];
+  const style = DIET_STYLES.find((d) => d.id === prefs.style);
+  if (style && prefs.style !== "omnivore") parts.push(style.label.toLowerCase());
+  for (const id of prefs.tags || []) {
+    if (id === "glutenFree") parts.push("gluten free");
+    if (id === "halalFriendly") parts.push("halal");
+  }
+  for (const id of prefs.avoid || []) {
+    if (id === "dairy") parts.push("no dairy");
+    else if (id === "nuts") parts.push("no nuts");
+    else if (id === "eggs") parts.push("no eggs");
+    else if (id === "shellfish") parts.push("no shellfish");
+    else if (id === "pork") parts.push("no pork");
+    else if (id === "gluten" && !(prefs.tags || []).includes("glutenFree")) parts.push("no gluten");
+  }
+  return parts.join(", ");
+}
 
 // diets[] = styles this recipe fits. contains[] = allergens / foods to avoid.
 // spice: mild | medium | hot. mealType: pre-match | recovery | breakfast | snack.
@@ -763,16 +937,35 @@ function nutritionEligible(age = typeof getAge === "function" ? getAge() : null)
 
 function getNutritionPrefs() {
   try {
-    return { ...DEFAULT_NUTRITION, ...JSON.parse(localStorage.getItem("sth-nutrition") || "{}") };
+    const stored = { ...DEFAULT_NUTRITION, ...JSON.parse(localStorage.getItem("sth-nutrition") || "{}") };
+    // Prefer free-text as source of truth when present; keep structured fields in sync.
+    if (stored.dietText && String(stored.dietText).trim()) {
+      return {
+        ...stored,
+        ...evaluateDietText(stored.dietText, {
+          spice: stored.spice,
+          maxMinutes: stored.maxMinutes,
+        }),
+        dietText: stored.dietText,
+      };
+    }
+    return stored;
   } catch {
     return { ...DEFAULT_NUTRITION };
   }
 }
 
 function saveNutritionPrefs(prefs) {
+  const dietText = prefs.dietText != null ? String(prefs.dietText) : "";
+  // Text drives style/tags/avoid; spice & cook-time selects can override.
+  const evaluated = evaluateDietText(dietText, {
+    spice: prefs.spice,
+    maxMinutes: prefs.maxMinutes,
+  });
   localStorage.setItem("sth-nutrition", JSON.stringify({
     ...DEFAULT_NUTRITION,
-    ...prefs,
+    ...evaluated,
+    dietText,
     updatedAt: new Date().toISOString(),
   }));
 }
