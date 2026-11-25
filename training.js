@@ -71,7 +71,7 @@ const GYM_MODE_LABEL = {
 
 const GYM_LOAD_NOTE = {
   bw: "Bodyweight only. Focus on perfect form and control. No weights needed at your age.",
-  light: "Use a light dumbbell or kettlebell. Form comes before weight. Train with a coach or adult supervising.",
+  light: "Use a light dumbbell or kettlebell. Form comes before weight.",
   loaded: "Pick a weight you could lift 2–3 more reps with (about RPE 7–8). Use a spotter on heavy sets.",
 };
 
@@ -137,7 +137,7 @@ const GYM = {
     icon: "🧘",
     category: "Injury Prevention",
     muscles: "Adductors (groin), core",
-    variants: { bw: "Short-Lever Copenhagen (knee on bench)", light: "Short-Lever Copenhagen", loaded: "Long-Lever Copenhagen Plank" },
+    variants: { bw: "Side Plank with Top-Leg Lift", light: "Short-Lever Copenhagen (knee on bench)", loaded: "Long-Lever Copenhagen Plank" },
     reps: { bw: "15 sec each side", light: "20 sec each side", loaded: "30 sec each side" },
     steps: [
       "Lie on your side with your top leg on a bench.",
@@ -230,7 +230,7 @@ const GYM = {
     icon: "🧱",
     category: "Core",
     muscles: "Core, anti-rotation",
-    variants: { bw: "Front Plank", light: "Plank with Shoulder Taps", loaded: "Weighted Plank / Pallof Press" },
+    variants: { bw: "Front Plank", light: "Plank with Shoulder Taps", loaded: "Band Pallof Press" },
     reps: { bw: "20 sec", light: "30 sec", loaded: "45 sec" },
     steps: [
       "Forearms on the floor, body in a straight line.",
@@ -252,6 +252,31 @@ const GYM = {
     ],
     coaching: "Rotational power equals harder shots and longer goalkeeper throws.",
   },
+};
+
+const EQUIPMENT = {
+  dumbbells: "Dumbbells",
+  kettlebell: "Kettlebell",
+  barbell: "Barbell & squat rack",
+  bench: "Weight bench",
+  box: "Plyo box or sturdy step",
+  medball: "Medicine ball",
+  bands: "Resistance bands",
+};
+
+// Equipment each variant requires: every inner list must be matched by at least one item.
+// Variants not listed need no equipment.
+const GYM_NEEDS = {
+  squat: { light: [["dumbbells", "kettlebell"]], loaded: [["barbell"]] },
+  rdl: { light: [["dumbbells", "kettlebell"]], loaded: [["barbell"]] },
+  lunge: { light: [["dumbbells", "kettlebell"]], loaded: [["dumbbells", "kettlebell", "barbell"], ["bench", "box"]] },
+  copenhagen: { light: [["bench", "box"]], loaded: [["bench", "box"]] },
+  boxjump: { light: [["box"]], loaded: [["box"]] },
+  calfraise: { loaded: [["dumbbells", "kettlebell"]] },
+  pushup: { loaded: [["dumbbells"], ["bench"]] },
+  row: { light: [["dumbbells", "kettlebell"]], loaded: [["barbell"]] },
+  plank: { loaded: [["bands"]] },
+  medball: { light: [["medball"]], loaded: [["medball"]] },
 };
 
 const POSITION_GYM = {

@@ -3,6 +3,8 @@ const STORE_KEY = "sth-progress";
 const POS_KEY = "sth-position";
 const AGE_KEY = "sth-age";
 const BENCH_KEY = "sth-benchmarks";
+const GYM_KEY = "sth-gym-setup";
+const GYM_MODES = ["bw", "light", "loaded"];
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 let timerHandle = null;
@@ -97,6 +99,53 @@ function loadMeterHtml() {
     </div>`;
 }
 
+// ---------- Gym setup ----------
+
+function getGymSetup() {
+  try { return JSON.parse(localStorage.getItem(GYM_KEY)); }
+  catch { return null; }
+}
+
+// Under-18s only lift weights with a supervising strength coach.
+function gymMode() {
+  const base = ageGroup().gymMode;
+  const age = getAge();
+  if (getGymSetup()?.supervised || (age && age >= 18)) return base;
+  const cap = age && age >= 16 ? "light" : "bw";
+  return GYM_MODES[Math.min(GYM_MODES.indexOf(base), GYM_MODES.indexOf(cap))];
+}
+
+const gymCapped = () => gymMode() !== ageGroup().gymMode;
+
+function pickVariant(id) {
+  const owned = getGymSetup()?.equipment || [];
+  for (let i = GYM_MODES.indexOf(gymMode()); i >= 0; i--) {
+    const mode = GYM_MODES[i];
+    const needs = GYM_NEEDS[id]?.[mode] || [];
+    if (needs.every((anyOf) => anyOf.some((e) => owned.includes(e)))) {
+      return { mode, name: GYM[id].variants[mode], reps: GYM[id].reps[mode] };
+    }
+  }
+}
+
+function gymNote(mode) {
+  const setup = getGymSetup();
+  let note = GYM_LOAD_NOTE[mode];
+  if (mode !== "bw" && !setup?.supervised) note += " No coach present, so always use a spotter and stop the set if your form breaks down.";
+  if (gymCapped()) note += " Heavier weights unlock when a qualified strength coach supervises you.";
+  return note;
+}
+
+function gymSetupSummary() {
+  const setup = getGymSetup();
+  if (!setup) return `<p>You haven't told us about your gym setup yet. <a href="#/gym-setup">Set it up →</a></p>`;
+  const gear = setup.equipment.length ? setup.equipment.map((e) => EQUIPMENT[e]).join(", ") : "No equipment (bodyweight)";
+  return `
+    <p><strong>Supervision:</strong> ${setup.supervised ? "✅ Qualified strength coach" : "❌ No strength coach"}<br>
+      <strong>Equipment:</strong> ${gear}<br>
+      <a href="#/gym-setup">Edit gym setup</a></p>`;
+}
+
 // ---------- Sessions ----------
 
 const sessionKey = (pos, week, idx) => `${pos}-${week}-${idx}`;
@@ -113,17 +162,17 @@ function buildItems(pos, week, idx) {
   const sets = group.sets[week];
 
   if (idx === "gym") {
-    const mode = group.gymMode;
     return POSITION_GYM[pos].map((id) => {
       const g = GYM[id];
+      const { mode, name, reps } = pickVariant(id);
       return {
-        title: g.variants[mode],
+        title: name,
         category: g.category,
-        tags: [`${sets} sets × ${g.reps[mode]}`, `Rest ${GYM_REST[mode]}s`, GYM_MODE_LABEL[mode]],
+        tags: [`${sets} sets × ${reps}`, `Rest ${GYM_REST[mode]}s`, GYM_MODE_LABEL[mode]],
         setup: `Works: ${g.muscles}. Warm up for 5–10 minutes before your first set.`,
         steps: g.steps,
         coaching: g.coaching,
-        warning: GYM_LOAD_NOTE[mode],
+        warning: gymNote(mode),
         visual: `<div class="gym-visual"><div class="big">${g.icon}</div><div>${g.muscles}</div></div>`,
         timerSec: GYM_REST[mode],
         timerLabel: "rest timer",
@@ -238,7 +287,7 @@ function viewAge() {
       <p>${group.focus}</p>
       <div class="grid">
         <div class="card"><h3>📊 Sets per drill</h3><p>Weeks 1–4: ${group.sets.join(" → ")}</p></div>
-        <div class="card"><h3>🏋️ Gym level</h3><p><strong>${GYM_MODE_LABEL[group.gymMode]}</strong>: ${GYM_LOAD_NOTE[group.gymMode]}</p></div>
+        <div class="card"><h3>🏋️ Gym level</h3><p><strong>${GYM_MODE_LABEL[gymMode()]}</strong>: ${gymNote(gymMode())}</p><a href="#/gym-setup">Gym setup</a></div>
         <div class="card"><h3>🗣️ Heading</h3><p>${HEADING_TEXT[headingRule()]}</p></div>
         <div class="card"><h3>🛌 Max sessions / week</h3><p>${group.maxPerWeek} total, including team practice and games. Always take at least ${group.maxPerWeek >= 6 ? "1 full rest day" : "2 rest days"}.</p></div>
       </div>
@@ -412,14 +461,14 @@ function viewPosition(id) {
           const isGym = s === "gym";
           const isDone = Boolean(done[sessionKey(id, w, s)]);
           const names = isGym
-            ? POSITION_GYM[id].map((g) => GYM[g].variants[group.gymMode])
+            ? POSITION_GYM[id].map((g) => pickVariant(g).name)
             : fieldDrills(p.sessions[s]).map((d) => DRILLS[d].name);
           return `
             <div class="session ${isDone ? "done" : ""} ${isGym ? "gym" : ""}">
               <div>
                 <strong>${isGym ? "🏋️ Gym Session" : `⚽ Field Session ${s + 1}`}</strong>
                 <div class="meta">${names.join(" · ")}</div>
-                <div class="meta">~${sessionMinutes(id, w, s)} min${isGym ? ` · ${GYM_MODE_LABEL[group.gymMode]}` : ""}</div>
+                <div class="meta">~${sessionMinutes(id, w, s)} min${isGym ? ` · ${GYM_MODE_LABEL[gymMode()]} · <a href="#/gym-setup">gym setup</a>` : ""}</div>
               </div>
               ${isDone
                 ? `<span class="check" title="Completed">✅</span>`
@@ -436,6 +485,10 @@ function viewSession(pos, week, idx) {
   const validIdx = idx === "gym" || (p && p.sessions[Number(idx)]);
   if (!p || !validIdx || !WEEK_INTENSITY[week]) return viewNotFound();
   if (idx !== "gym") idx = Number(idx);
+  if (idx === "gym" && !getGymSetup()) {
+    location.hash = `#/gym-setup/${pos}/${week}/gym`;
+    return;
+  }
 
   const items = buildItems(pos, week, idx);
   const sessionName = idx === "gym" ? "Gym Session" : `Field Session ${idx + 1}`;
@@ -574,34 +627,77 @@ function viewDrill(id) {
 
 function viewGym() {
   const age = getAge();
-  const group = ageGroup();
-  const mode = group.gymMode;
+  const mode = gymMode();
   const pos = localStorage.getItem(POS_KEY);
   const plan = pos && POSITION_GYM[pos]
-    ? `<p>Your <strong>${POSITIONS[pos].name}</strong> gym plan: ${POSITION_GYM[pos].map((g) => GYM[g].variants[mode]).join(" · ")}.
+    ? `<p>Your <strong>${POSITIONS[pos].name}</strong> gym plan: ${POSITION_GYM[pos].map((g) => pickVariant(g).name).join(" · ")}.
         <a href="#/position/${pos}">Go to program →</a></p>`
     : `<p><a href="#/pick">Pick your position</a> to get a position-specific gym plan.</p>`;
 
   app.innerHTML = `
     <h1>🏋️ Gym Library</h1>
-    <p>Strength, power and injury-prevention work. Exercises adjust to your age:
-      ${age ? `you're on <strong>${GYM_MODE_LABEL[mode]}</strong>.` : `<a href="#/age">set your age</a> to tailor them (showing 13–15 settings).`}</p>
-    <div class="coach warn">⚠️ ${GYM_LOAD_NOTE[mode]}</div>
+    <p>Strength, power and injury-prevention work. Exercises adjust to your age, supervision and equipment:
+      ${age ? `you're on <strong>${GYM_MODE_LABEL[mode]}</strong>.` : `<a href="#/age">set your age</a> to tailor them.`}</p>
+    <div class="card">${gymSetupSummary()}</div>
+    <div class="coach warn">⚠️ ${gymNote(mode)}</div>
     ${plan}
     <div class="grid">
-      ${Object.values(GYM).map((g) => `
+      ${Object.entries(GYM).map(([id, g]) => {
+        const v = pickVariant(id);
+        return `
         <div class="card">
           <div class="icon">${g.icon}</div>
-          <h3>${g.variants[mode]}</h3>
-          <span class="tag">${g.category}</span><span class="tag">${g.reps[mode]} reps</span>
+          <h3>${v.name}</h3>
+          <span class="tag">${g.category}</span><span class="tag">${v.reps} reps</span>
           <p>${g.muscles}</p>
           <details>
             <summary>How to do it</summary>
             <ol class="steps">${g.steps.map((s) => `<li>${s}</li>`).join("")}</ol>
             <p><em>${g.coaching}</em></p>
           </details>
-        </div>`).join("")}
+        </div>`;
+      }).join("")}
     </div>`;
+}
+
+function viewGymSetup(pos, week, idx) {
+  const setup = getGymSetup() || { supervised: null, equipment: [] };
+  const returnTo = pos ? `#/session/${pos}/${week}/${idx}` : "#/gym";
+
+  app.innerHTML = `
+    <div class="quiz">
+      <h1>🏋️ Gym Setup</h1>
+      <p>Before you lift, tell us who's supervising you and what equipment you have. We'll pick safe exercises that fit.</p>
+      <form id="gymSetup">
+        <h2>Do you have a qualified strength coach or trainer supervising your weight sessions?</h2>
+        <div class="options">
+          <label class="choice"><input type="radio" name="supervised" value="yes" required ${setup.supervised === true ? "checked" : ""}/> Yes, a qualified coach or trainer watches my lifts</label>
+          <label class="choice"><input type="radio" name="supervised" value="no" ${setup.supervised === false ? "checked" : ""}/> No, I train on my own or with friends</label>
+        </div>
+        <p class="hint">Under 18 without a coach? You'll get bodyweight or light versions until a coach is there to supervise.</p>
+
+        <h2>What equipment do you have?</h2>
+        <div class="options">
+          ${Object.entries(EQUIPMENT).map(([id, label]) => `
+            <label class="choice"><input type="checkbox" name="equipment" value="${id}" ${setup.equipment.includes(id) ? "checked" : ""}/> ${label}</label>`).join("")}
+        </div>
+        <p class="hint">Nothing at all? Leave these unchecked. Bodyweight training works great.</p>
+
+        <div class="btn-row">
+          <button class="btn" type="submit">${pos ? "Save & start gym session" : "Save gym setup"}</button>
+        </div>
+      </form>
+    </div>`;
+
+  document.getElementById("gymSetup").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const form = new FormData(e.target);
+    localStorage.setItem(GYM_KEY, JSON.stringify({
+      supervised: form.get("supervised") === "yes",
+      equipment: form.getAll("equipment"),
+    }));
+    location.hash = returnTo;
+  });
 }
 
 function viewPathway() {
@@ -710,6 +806,7 @@ function router() {
     drills: () => viewDrills(),
     drill: viewDrill,
     gym: viewGym,
+    "gym-setup": viewGymSetup,
     pathway: viewPathway,
     age: viewAge,
     progress: viewProgress,
