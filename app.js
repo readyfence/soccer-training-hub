@@ -5,6 +5,9 @@ const AGE_KEY = "sth-age";
 const BENCH_KEY = "sth-benchmarks";
 const GYM_KEY = "sth-gym-setup";
 const GYM_MODES = ["bw", "light", "loaded"];
+const PROFILE_KEY = "sth-profile";
+const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 let timerHandle = null;
@@ -78,12 +81,51 @@ function bindAgeForms(onSave) {
 
 function updateAgeBadge() {
   const age = getAge();
-  document.getElementById("ageBadge").textContent = age ? `🎂 Age ${age}` : "🎂 Set age";
+  const country = COUNTRIES[getProfile().country];
+  const parts = [age && `Age ${age}`, country?.flag].filter(Boolean);
+  document.getElementById("ageBadge").textContent = parts.length ? `👤 ${parts.join(" · ")}` : "👤 My profile";
 }
+
+// ---------- Profile ----------
+
+function getProfile() {
+  try { return { teamDays: [], matchDays: [], season: "auto", ...JSON.parse(localStorage.getItem(PROFILE_KEY)) }; }
+  catch { return { teamDays: [], matchDays: [], season: "auto" }; }
+}
+
+function seasonPhase(profile = getProfile(), date = new Date()) {
+  if (profile.season && profile.season !== "auto") return profile.season;
+  const season = (COUNTRIES[profile.country] || COUNTRIES.other).season;
+  const month = date.getMonth() + 1;
+  if (season.off.includes(month)) return "off";
+  if (season.pre.includes(month)) return "pre";
+  return "in";
+}
+
+function weatherTip(profile, date = new Date()) {
+  const country = COUNTRIES[profile.country];
+  if (!country) return "";
+  const month = date.getMonth() + 1;
+  const summer = country.hemisphere === "N" ? [6, 7, 8] : [12, 1, 2];
+  const winter = country.hemisphere === "N" ? [12, 1, 2] : [6, 7, 8];
+  if (summer.includes(month)) return "☀️ It's summer where you are. Train early or late to avoid the heat, and drink water every 15–20 minutes.";
+  if (winter.includes(month)) return "❄️ It's winter where you are. Wear layers and add 5 extra minutes to your warm-up.";
+  return "";
+}
+
+function pathwayTipOfDay(profile, date = new Date()) {
+  const tips = [...(COUNTRIES[profile.country] || COUNTRIES.other).pathway, ...UNIVERSAL_PATHWAY_TIPS];
+  const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
+  return tips[dayOfYear % tips.length];
+}
+
+const teamLoad = (profile = getProfile()) => profile.teamDays.length + profile.matchDays.length;
 
 function loadMeterHtml() {
   const group = ageGroup();
-  const count = sessionsThisWeek();
+  const logged = sessionsThisWeek();
+  const team = teamLoad();
+  const count = logged + team;
   const pct = Math.min(100, (count / group.maxPerWeek) * 100);
   const level = count > group.maxPerWeek ? "over" : count === group.maxPerWeek ? "full" : "ok";
   const msg = {
@@ -93,9 +135,10 @@ function loadMeterHtml() {
   }[level];
   return `
     <div class="load ${level}">
-      <strong>Weekly load monitor:</strong> ${count} of ${group.maxPerWeek} sessions in the last 7 days
+      <strong>Weekly load monitor:</strong> ${count} of ${group.maxPerWeek} sessions
+      (${logged} logged here in the last 7 days${team ? ` + ${team} team practices/matches` : ""})
       <div class="progress-bar"><span style="width:${pct}%"></span></div>
-      <small>${msg} Count team practices and matches toward this too.</small>
+      <small>${msg} ${team ? "" : `Add your team schedule in <a href="#/profile">your profile</a> so it counts too.`}</small>
     </div>`;
 }
 
@@ -130,7 +173,10 @@ function pickVariant(id) {
 
 function gymNote(mode) {
   const setup = getGymSetup();
-  let note = GYM_LOAD_NOTE[mode];
+  const { maxLoad } = ageGroup();
+  let note = mode === "light" && maxLoad
+    ? `Use ${maxLoad} dumbbells or kettlebells only, and only with your strength coach watching every set. Form comes before weight.`
+    : GYM_LOAD_NOTE[mode];
   if (mode !== "bw" && !setup?.supervised) note += " No coach present, so always use a spotter and stop the set if your form breaks down.";
   if (gymCapped()) note += " Heavier weights unlock when a qualified strength coach supervises you.";
   return note;
@@ -236,6 +282,161 @@ function setActiveNav() {
   });
 }
 
+// ---------- Daily plan ----------
+
+function nextSession(pos, skip = () => false) {
+  const done = store.get();
+  const slots = [...POSITIONS[pos].sessions.map((_, s) => s), "gym"];
+  for (let w = 0; w < WEEK_INTENSITY.length; w++) {
+    for (const s of slots) {
+      if (!done[sessionKey(pos, w, s)] && !skip(w, s)) return { week: w, idx: s };
+    }
+  }
+  return null;
+}
+
+const trainedToday = () =>
+  Object.values(store.get()).some((iso) => new Date(iso).toDateString() === new Date().toDateString());
+
+function sessionLink(pos, { week, idx }) {
+  const name = idx === "gym" ? "Gym Session" : `Field Session ${idx + 1}`;
+  return {
+    title: `${name} (Week ${week + 1}: ${WEEK_INTENSITY[week]})`,
+    action: `<a class="btn" href="#/session/${pos}/${week}/${idx}">Start session</a>`,
+    detail: `~${sessionMinutes(pos, week, idx)} min · ${POSITIONS[pos].name} program`,
+  };
+}
+
+// Returns { icon, title, detail, reasons[], todo[], action } for today.
+function buildTodayPlan(date = new Date()) {
+  const profile = getProfile();
+  const pos = localStorage.getItem(POS_KEY);
+  const day = date.getDay();
+  const yesterday = (day + 6) % 7;
+  const tomorrow = (day + 1) % 7;
+  const isMatch = (d) => profile.matchDays.includes(d);
+  const phase = seasonPhase(profile, date);
+  const group = ageGroup();
+
+  if (!POSITIONS[pos]) {
+    return {
+      icon: "🧭", title: "Find your position first",
+      reasons: ["Your daily plan is built from your position's program."],
+      action: `<a class="btn" href="#/finder">Find my position</a> <a class="btn secondary" href="#/pick">I know my position</a>`,
+    };
+  }
+
+  if (isMatch(day)) {
+    return {
+      icon: "🏟️", title: "Match day!",
+      reasons: [`You told us you play on ${DAY_NAMES[day]}s.`],
+      todo: [
+        "Eat a carb-rich meal 3–4 hours before kick-off (pasta, rice, bread).",
+        "Drink water through the day so you're hydrated before the game.",
+        `Do your <a href="#/drill/warmup">dynamic warm-up</a> before the match.`,
+        "No extra training today. Save it all for the game.",
+        "After: cool down, stretch, and eat protein + carbs within an hour.",
+      ],
+    };
+  }
+
+  if (trainedToday()) {
+    return {
+      icon: "✅", title: "Done for today",
+      reasons: ["You've already finished a session today."],
+      todo: ["Stretch for 10 minutes.", "Eat well and aim for 8–10 hours of sleep."],
+    };
+  }
+
+  if (isMatch(yesterday)) {
+    return {
+      icon: "🧊", title: "Recovery day",
+      reasons: [`You played yesterday (${DAY_NAMES[yesterday]}).`],
+      todo: [
+        "20 minutes of light movement: walking, easy jog, or a bike ride.",
+        "10–15 minutes of stretching or foam rolling.",
+        "Extra sleep and plenty of water.",
+        "No hard training. Your body rebuilds today.",
+      ],
+    };
+  }
+
+  if (profile.teamDays.includes(day)) {
+    const extra = isMatch(tomorrow)
+      ? `Match tomorrow, so keep extras tiny: 5 minutes of <a href="#/drill/juggling">juggling</a> at most.`
+      : `Optional 10–15 min extra after practice: <a href="#/drill/juggling">juggling</a> or bodyweight Nordic curls and Copenhagen planks for injury prevention.`;
+    return {
+      icon: "👥", title: "Team practice day",
+      reasons: [`You have team practice on ${DAY_NAMES[day]}s.`],
+      todo: ["Give 100% at practice. It's your most important session today.", extra],
+    };
+  }
+
+  const load = sessionsThisWeek() + teamLoad(profile);
+  if (load >= group.maxPerWeek) {
+    return {
+      icon: "🛌", title: "Rest day",
+      reasons: [`You've reached ${load} of your ${group.maxPerWeek} recommended sessions this week for age group ${group.label}.`],
+      todo: ["Rest is when you get stronger. Take the day off.", "Light stretching or a walk is fine."],
+    };
+  }
+
+  const reasons = [`${DAY_NAMES[day]} is a free day in your schedule.`];
+  const matchTomorrow = isMatch(tomorrow);
+  let next = nextSession(pos);
+  if (!next) {
+    return {
+      icon: "🏆", title: "Program complete!",
+      reasons: [`You've finished all 4 weeks of the ${POSITIONS[pos].name} program.`],
+      todo: [
+        `Re-test your <a href="#/pathway">fitness benchmarks</a> to see how far you've come.`,
+        `Reset your progress on <a href="#/progress">My Progress</a> to run the program again. Your age settings will make it harder as you grow.`,
+      ],
+    };
+  }
+
+  if (matchTomorrow && next.idx === "gym") {
+    next = nextSession(pos, (w, s) => s === "gym") || null;
+    reasons.push("Match tomorrow, so the gym session is moved to keep your legs fresh.");
+  } else if (phase === "off" && next.idx !== "gym") {
+    const gymFirst = nextSession(pos, (w, s) => s !== "gym" || w !== next.week);
+    if (gymFirst) {
+      next = gymFirst;
+      reasons.push("It's the off-season, so gym work comes first this week.");
+    }
+  }
+
+  if (!next) {
+    return {
+      icon: "🎯", title: "Light skills day",
+      reasons: [...reasons, "Match tomorrow, so keep it short and sharp."],
+      todo: [`15 minutes of <a href="#/drill/juggling">juggling</a> and <a href="#/drill/firsttouch">first touch</a> work. Nothing tiring.`],
+    };
+  }
+
+  const session = sessionLink(pos, next);
+  if (matchTomorrow) reasons.push("Match tomorrow: do just 1 set of each drill and stop well before you're tired.");
+  reasons.push(`Next up in your ${POSITIONS[pos].name} program.`);
+  return { icon: next.idx === "gym" ? "🏋️" : "⚽", ...session, reasons };
+}
+
+function todayCardHtml(plan) {
+  return `
+    <div class="card today">
+      <div class="today-head">
+        <div class="big">${plan.icon}</div>
+        <div>
+          <p class="stepper">${DAY_NAMES[new Date().getDay()]}'s plan</p>
+          <h2>${plan.title}</h2>
+          ${plan.detail ? `<p class="muted">${plan.detail}</p>` : ""}
+        </div>
+      </div>
+      ${plan.todo ? `<ul class="todo">${plan.todo.map((t) => `<li>${t}</li>`).join("")}</ul>` : ""}
+      ${plan.action ? `<div class="btn-row">${plan.action}</div>` : ""}
+      <details><summary>Why this plan?</summary><ul>${plan.reasons.map((r) => `<li>${r}</li>`).join("")}</ul></details>
+    </div>`;
+}
+
 // ---------- Views ----------
 
 function viewHome() {
@@ -257,13 +458,14 @@ function viewHome() {
       </div>
     </section>
 
-    <div class="card age-card">
-      ${age
-        ? `<h3>🎂 Age ${age}: ${group.stage} (${group.label})</h3><p>${group.focus}</p>`
-        : `<h3>🎂 Set your age</h3><p>Your age adjusts training volume, gym loading, heading safety and weekly limits.</p>`}
-      ${ageFormHtml()}
-      ${age ? loadMeterHtml() : ""}
-    </div>
+    ${getProfile().country
+      ? todayCardHtml(buildTodayPlan())
+      : `<div class="card age-card">
+          <h3>👤 Set up your profile</h3>
+          <p>Tell us your country, age, position and team schedule, and we'll tell you exactly what to do each day.</p>
+          <div class="btn-row"><a class="btn" href="#/profile">Set up my profile</a></div>
+        </div>`}
+    ${age ? `<p class="muted">🎂 Age ${age}: ${group.stage} (${group.label}). ${group.focus}</p>` : ""}
 
     <h2>How it works</h2>
     <div class="grid">
@@ -271,8 +473,115 @@ function viewHome() {
       <div class="card"><div class="icon">📅</div><h3>2. 4-week program</h3><p>3 field sessions and 1 gym session per week, getting harder each week.</p></div>
       <div class="card"><div class="icon">🏋️</div><h3>3. Gym sessions</h3><p>Strength, power and injury prevention, with exercises matched to your age.</p></div>
       <div class="card"><div class="icon">🚀</div><h3>4. Pro Pathway</h3><p>What to focus on at each age, plus fitness benchmarks to track against.</p></div>
+      </div>`;
+}
+
+function viewToday() {
+  const profile = getProfile();
+  const country = COUNTRIES[profile.country];
+  const phase = seasonPhase(profile);
+  const missing = [
+    !country && "country",
+    !getAge() && "age",
+    !POSITIONS[localStorage.getItem(POS_KEY)] && "position",
+    !profile.teamDays.length && !profile.matchDays.length && "team schedule",
+  ].filter(Boolean);
+  const weather = weatherTip(profile);
+
+  app.innerHTML = `
+    <h1>📅 Today</h1>
+    ${missing.length ? `
+      <div class="coach warn">Add your <strong>${missing.join(", ")}</strong> to
+        <a href="#/profile">your profile</a> for a more accurate plan.</div>` : ""}
+    ${todayCardHtml(buildTodayPlan())}
+
+    <div class="grid" style="margin-top:16px">
+      <div class="card">
+        <h3>🗓️ ${SEASON_TEXT[phase].label}${profile.season === "auto" ? ` <span class="tag">auto${country ? ` · ${country.name}` : ""}</span>` : ""}</h3>
+        <p>${SEASON_TEXT[phase].tip}</p>
+      </div>
+      ${weather ? `<div class="card"><h3>🌡️ Weather</h3><p>${weather}</p></div>` : ""}
+      <div class="card">
+        <h3>🚀 Pro tip ${country ? country.flag : ""}</h3>
+        <p>${pathwayTipOfDay(profile)}</p>
+      </div>
+    </div>
+    ${loadMeterHtml()}
+    <div class="btn-row"><a class="btn secondary small" href="#/profile">✏️ Update my profile</a></div>`;
+}
+
+function viewProfile() {
+  const profile = getProfile();
+  const pos = localStorage.getItem(POS_KEY);
+  const detected = SEASON_TEXT[seasonPhase({ ...profile, season: "auto" })].label;
+  const countries = Object.entries(COUNTRIES)
+    .filter(([id]) => id !== "other")
+    .sort((a, b) => a[1].name.localeCompare(b[1].name))
+    .concat([["other", COUNTRIES.other]]);
+  const dayBoxes = (name, selected) => WEEK_ORDER.map((d) => `
+    <label class="choice day"><input type="checkbox" name="${name}" value="${d}" ${selected.includes(d) ? "checked" : ""}/> ${DAY_NAMES[d].slice(0, 3)}</label>`).join("");
+
+  app.innerHTML = `
+    <div class="quiz">
+      <h1>👤 My Profile</h1>
+      <p>Your daily plan is built from this. Update it anytime, like when your team schedule changes or you have a birthday.</p>
+      ${profile.updatedAt ? `<p class="muted">Last updated ${new Date(profile.updatedAt).toLocaleDateString()}</p>` : ""}
+      <form id="profileForm" class="profile-form">
+        <label>Country
+          <select name="country" required>
+            <option value="">Choose your country…</option>
+            ${countries.map(([id, c]) => `<option value="${id}" ${profile.country === id ? "selected" : ""}>${c.flag} ${c.name}</option>`).join("")}
+          </select>
+        </label>
+        <label>Age
+          <input type="number" name="age" min="5" max="60" required value="${getAge() ?? ""}" />
+        </label>
+        <label>Position
+          <select name="position" required>
+            <option value="">Choose your position…</option>
+            ${Object.entries(POSITIONS).map(([id, p]) => `<option value="${id}" ${pos === id ? "selected" : ""}>${p.icon} ${p.name}</option>`).join("")}
+          </select>
+          <small><a href="#/finder">Not sure? Take the Position Finder</a></small>
+        </label>
+
+        <h2>Team practice days</h2>
+        <div class="days">${dayBoxes("teamDays", profile.teamDays)}</div>
+        <h2>Match days</h2>
+        <div class="days">${dayBoxes("matchDays", profile.matchDays)}</div>
+
+        <label>Season
+          <select name="season">
+            <option value="auto" ${profile.season === "auto" ? "selected" : ""}>Automatic from country (now: ${detected})</option>
+            ${Object.entries(SEASON_TEXT).map(([id, s]) => `<option value="${id}" ${profile.season === id ? "selected" : ""}>${s.label}</option>`).join("")}
+          </select>
+        </label>
+
+        <div class="card">
+          <h3>🏋️ Gym setup</h3>
+          ${gymSetupSummary()}
+        </div>
+
+        <div class="btn-row">
+          <button class="btn" type="submit">Save & see today's plan</button>
+        </div>
+      </form>
     </div>`;
-  bindAgeForms(viewHome);
+
+  document.getElementById("profileForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const form = new FormData(e.target);
+    const matchDays = form.getAll("matchDays").map(Number);
+    localStorage.setItem(PROFILE_KEY, JSON.stringify({
+      country: form.get("country"),
+      teamDays: form.getAll("teamDays").map(Number).filter((d) => !matchDays.includes(d)),
+      matchDays,
+      season: form.get("season"),
+      updatedAt: new Date().toISOString(),
+    }));
+    localStorage.setItem(AGE_KEY, form.get("age"));
+    localStorage.setItem(POS_KEY, form.get("position"));
+    location.hash = "#/today";
+  });
 }
 
 function viewAge() {
@@ -674,7 +983,7 @@ function viewGymSetup(pos, week, idx) {
           <label class="choice"><input type="radio" name="supervised" value="yes" required ${setup.supervised === true ? "checked" : ""}/> Yes, a qualified coach or trainer watches my lifts</label>
           <label class="choice"><input type="radio" name="supervised" value="no" ${setup.supervised === false ? "checked" : ""}/> No, I train on my own or with friends</label>
         </div>
-        <p class="hint">Under 18 without a coach? You'll get bodyweight or light versions until a coach is there to supervise.</p>
+        <p class="hint">Under 18 without a coach? You'll get bodyweight or light versions until a coach is there to supervise. Ages 10–12 use 5 lb weights only, and only with a coach.</p>
 
         <h2>What equipment do you have?</h2>
         <div class="options">
@@ -723,6 +1032,14 @@ function viewPathway() {
           </div>`;
       }).join("")}
     </div>
+
+    ${(() => {
+      const c = COUNTRIES[getProfile().country];
+      return c ? `
+        <h2>${c.flag} Getting scouted in ${c.name}</h2>
+        <div class="card"><ul>${[...c.pathway, ...UNIVERSAL_PATHWAY_TIPS].map((t) => `<li>${t}</li>`).join("")}</ul></div>`
+        : `<p><a href="#/profile">Add your country</a> to see how players get scouted where you live.</p>`;
+    })()}
 
     <h2>📏 Fitness Benchmarks <span class="tag">${group.label}</span></h2>
     <p>Rough targets for players on a pro track at your age. Test every 4–6 weeks and compare against your own past results most of all.</p>
@@ -809,6 +1126,8 @@ function router() {
     "gym-setup": viewGymSetup,
     pathway: viewPathway,
     age: viewAge,
+    today: viewToday,
+    profile: viewProfile,
     progress: viewProgress,
   };
   (routes[route] || viewNotFound)(...params);

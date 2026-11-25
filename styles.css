@@ -297,6 +297,28 @@ button.card.pick.current { border-color: var(--accent); }
 #gymSetup .hint { margin-top: 10px; }
 .choice input { width: 18px; height: 18px; accent-color: var(--green); }
 
+.today { margin-top: 20px; border-top: 5px solid var(--accent); }
+.today-head { display: flex; align-items: center; gap: 16px; }
+.today-head h2 { margin: 0; }
+.today-head .stepper { margin: 0; }
+.today-head .big { font-size: 3rem; }
+.todo { padding-left: 20px; }
+.todo li { margin-bottom: 6px; }
+
+.profile-form { display: grid; gap: 16px; }
+.profile-form > label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
+.profile-form h2 { margin: 8px 0 0; font-size: 1.1rem; }
+.profile-form select, .profile-form input[type="number"] {
+  font: inherit;
+  padding: 10px 12px;
+  border: 2px solid #dbe5de;
+  border-radius: 10px;
+  background: #fff;
+}
+.profile-form select:focus, .profile-form input:focus { outline: none; border-color: var(--green); }
+.days { display: flex; flex-wrap: wrap; gap: 8px; }
+.choice.day { padding: 8px 12px; }
+
 details summary { cursor: pointer; font-weight: 600; color: var(--green-dark); margin-top: 8px; }
 
 .pathway { display: grid; gap: 14px; }

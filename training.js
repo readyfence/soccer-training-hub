@@ -21,9 +21,10 @@ const AGE_GROUPS = [
     stage: "Golden Age of Skill",
     sets: [2, 2, 3, 3],
     volume: 0.8,
-    gymMode: "bw",
+    gymMode: "light",
+    maxLoad: "5 lb (about 2.5 kg)",
     maxPerWeek: 4,
-    focus: "Master both feet, first touch and 1v1 moves. Bodyweight strength only.",
+    focus: "Master both feet, first touch and 1v1 moves. Bodyweight strength, plus 5 lb weights only with a strength coach.",
   },
   {
     id: "u16",
@@ -243,7 +244,7 @@ const GYM = {
     icon: "🏐",
     category: "Power",
     muscles: "Core, hips (rotational power)",
-    variants: { bw: "Partner Ball Throw (soccer ball)", light: "Med-Ball Rotational Throw (2–3 kg)", loaded: "Med-Ball Rotational Throw (4–6 kg)" },
+    variants: { bw: "Partner Ball Throw (soccer ball)", light: "Med-Ball Rotational Throw (light ball)", loaded: "Med-Ball Rotational Throw (4–6 kg)" },
     reps: { bw: "8 each side", light: "6 each side", loaded: "6 each side" },
     steps: [
       "Stand side-on to a wall or partner.",
