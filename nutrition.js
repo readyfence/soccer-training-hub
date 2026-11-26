@@ -228,6 +228,7 @@ function synthesizeDietText(prefs = {}) {
 
 // diets[] = styles this recipe fits. contains[] = allergens / foods to avoid.
 // spice: mild | medium | hot. mealType: pre-match | recovery | breakfast | snack.
+// macros: approx per-serving estimates (kcal; protein/carbs/fat/fiber in grams).
 const RECIPES = [
   {
     id: "pasta-marinara-chicken",
@@ -254,6 +255,7 @@ const RECIPES = [
       "Eat 3–4 hours before kick-off with water.",
     ],
     why: "Steady carbs for energy plus lean protein so you feel fueled, not heavy.",
+    macros: { kcal: 520, protein: 38, carbs: 62, fat: 12, fiber: 4 },
   },
   {
     id: "rice-bowl-beef",
@@ -279,6 +281,7 @@ const RECIPES = [
       "Season lightly; serve over rice.",
     ],
     why: "Carbs from rice top up muscle fuel; protein supports recovery if you play hard.",
+    macros: { kcal: 560, protein: 36, carbs: 58, fat: 18, fiber: 5 },
   },
   {
     id: "bagel-pb-banana",
@@ -303,6 +306,7 @@ const RECIPES = [
       "Eat 1.5–2.5 hours before a match or hard session.",
     ],
     why: "Quick digestible carbs with a bit of fat and protein for lasting energy.",
+    macros: { kcal: 480, protein: 16, carbs: 68, fat: 16, fiber: 6 },
   },
   {
     id: "oatmeal-berries",
@@ -327,6 +331,7 @@ const RECIPES = [
       "Top with berries and a drizzle of sweetener.",
     ],
     why: "Slow carbs for morning fuel and easy digestion before school or training.",
+    macros: { kcal: 320, protein: 9, carbs: 58, fat: 6, fiber: 8 },
   },
   {
     id: "eggs-toast-fruit",
@@ -350,6 +355,7 @@ const RECIPES = [
       "Toast bread; plate with fruit.",
     ],
     why: "Protein-rich start plus carbs to support focus and training later.",
+    macros: { kcal: 420, protein: 24, carbs: 38, fat: 18, fiber: 4 },
   },
   {
     id: "yogurt-granola",
@@ -373,6 +379,7 @@ const RECIPES = [
       "Eat soon after mixing so granola stays crunchy.",
     ],
     why: "Protein for muscle repair and carbs for energy — great after an early session too.",
+    macros: { kcal: 380, protein: 28, carbs: 42, fat: 10, fiber: 4 },
   },
   {
     id: "overnight-oats-chia",
@@ -396,6 +403,7 @@ const RECIPES = [
       "Add fruit in the morning and eat cold or warmed.",
     ],
     why: "Prep-ahead carbs and fiber so match mornings stay calm and fueled.",
+    macros: { kcal: 360, protein: 12, carbs: 52, fat: 12, fiber: 10 },
   },
   {
     id: "salmon-potato",
@@ -420,6 +428,7 @@ const RECIPES = [
       "Squeeze lemon; serve with greens.",
     ],
     why: "Protein and omega-3 fats support recovery; potatoes refill carb stores.",
+    macros: { kcal: 540, protein: 40, carbs: 42, fat: 22, fiber: 6 },
   },
   {
     id: "chicken-rice-veg",
@@ -444,6 +453,7 @@ const RECIPES = [
       "Plate together; drink water with the meal.",
     ],
     why: "Classic post-training plate: carbs to refill glycogen, protein to rebuild muscle.",
+    macros: { kcal: 510, protein: 42, carbs: 55, fat: 10, fiber: 4 },
   },
   {
     id: "turkey-wrap",
@@ -467,6 +477,7 @@ const RECIPES = [
       "Roll tightly; eat within an hour after training if you can.",
     ],
     why: "Portable protein + carbs when you need food fast after practice.",
+    macros: { kcal: 390, protein: 32, carbs: 36, fat: 12, fiber: 5 },
   },
   {
     id: "bean-chili",
@@ -492,6 +503,7 @@ const RECIPES = [
       "Serve over rice; cool the spice if needed with yogurt or avocado.",
     ],
     why: "Plant protein and carbs for a filling recovery meal on a budget.",
+    macros: { kcal: 450, protein: 22, carbs: 68, fat: 10, fiber: 16 },
   },
   {
     id: "tofu-stirfry",
@@ -516,6 +528,7 @@ const RECIPES = [
       "Serve over rice.",
     ],
     why: "Plant protein plus carbs — solid vegan-friendly recovery option.",
+    macros: { kcal: 480, protein: 28, carbs: 52, fat: 16, fiber: 7 },
   },
   {
     id: "tuna-pasta",
@@ -539,6 +552,7 @@ const RECIPES = [
       "Mix with tuna, veg, and dressing.",
     ],
     why: "Easy carbs and fish protein — good fridge meal after evening training.",
+    macros: { kcal: 470, protein: 34, carbs: 52, fat: 12, fiber: 4 },
   },
   {
     id: "lentil-soup-bread",
@@ -563,6 +577,7 @@ const RECIPES = [
       "Blend partly if you like; serve with bread.",
     ],
     why: "Iron-friendly plant protein and fluids — helpful when you feel drained.",
+    macros: { kcal: 420, protein: 22, carbs: 62, fat: 8, fiber: 14 },
   },
   {
     id: "smoothie-banana-milk",
@@ -586,6 +601,7 @@ const RECIPES = [
       "Drink within about an hour after hard work.",
     ],
     why: "Liquid carbs + protein help refill energy when solid food is hard to face.",
+    macros: { kcal: 340, protein: 14, carbs: 48, fat: 10, fiber: 4 },
   },
   {
     id: "smoothie-plant",
@@ -609,6 +625,7 @@ const RECIPES = [
       "Add water if too thick.",
     ],
     why: "Dairy-free carb + protein option for quick post-session refuel.",
+    macros: { kcal: 310, protein: 18, carbs: 52, fat: 6, fiber: 8 },
   },
   {
     id: "chocolate-milk",
@@ -629,6 +646,7 @@ const RECIPES = [
       "Drink chocolate milk and eat the fruit after training.",
     ],
     why: "Simple research-backed combo of carbs and protein for busy athletes.",
+    macros: { kcal: 280, protein: 12, carbs: 48, fat: 6, fiber: 3 },
   },
   {
     id: "rice-cakes-tuna",
@@ -652,6 +670,7 @@ const RECIPES = [
       "Spread on rice cakes; add cucumber.",
     ],
     why: "Light gluten-free snack with protein between sessions.",
+    macros: { kcal: 250, protein: 22, carbs: 28, fat: 5, fiber: 1 },
   },
   {
     id: "trail-mix-fruit",
@@ -674,6 +693,7 @@ const RECIPES = [
       "Pair with water and fresh fruit.",
     ],
     why: "Portable energy for travel days; keep portions modest before matches.",
+    macros: { kcal: 320, protein: 8, carbs: 36, fat: 16, fiber: 5 },
   },
   {
     id: "hummus-veg-pita",
@@ -696,6 +716,7 @@ const RECIPES = [
       "Good as a light pre-evening-session snack 1–2 hours out.",
     ],
     why: "Carbs and plant protein without feeling stuffed.",
+    macros: { kcal: 340, protein: 12, carbs: 42, fat: 14, fiber: 8 },
   },
   {
     id: "egg-fried-rice",
@@ -719,6 +740,7 @@ const RECIPES = [
       "Stir-fry rice and veg; return eggs; season.",
     ],
     why: "Uses leftover rice for fast carbs and protein after a late practice.",
+    macros: { kcal: 480, protein: 20, carbs: 58, fat: 16, fiber: 4 },
   },
   {
     id: "sweet-potato-black-bean",
@@ -742,6 +764,7 @@ const RECIPES = [
       "Split open; top with beans, salsa, avocado.",
     ],
     why: "Potassium-rich carbs and plant protein for next-day legs.",
+    macros: { kcal: 460, protein: 16, carbs: 72, fat: 12, fiber: 16 },
   },
   {
     id: "shrimp-noodles",
@@ -766,6 +789,7 @@ const RECIPES = [
       "Toss with noodles and lemon.",
     ],
     why: "Lighter protein with pasta carbs — easy on the stomach before games for many players.",
+    macros: { kcal: 490, protein: 32, carbs: 55, fat: 14, fiber: 3 },
   },
   {
     id: "pancake-stack",
@@ -790,6 +814,7 @@ const RECIPES = [
       "Top with berries.",
     ],
     why: "Weekend breakfast with carbs and protein before a double session.",
+    macros: { kcal: 380, protein: 18, carbs: 48, fat: 12, fiber: 6 },
   },
   {
     id: "cottage-cheese-pineapple",
@@ -810,6 +835,7 @@ const RECIPES = [
       "Stir together and eat chilled.",
     ],
     why: "High-protein snack that supports overnight recovery between hard days.",
+    macros: { kcal: 240, protein: 28, carbs: 22, fat: 4, fiber: 1 },
   },
   {
     id: "veggie-omelette-potatoes",
@@ -834,6 +860,7 @@ const RECIPES = [
       "Serve together.",
     ],
     why: "Protein-forward breakfast with potato carbs for midweek training days.",
+    macros: { kcal: 440, protein: 26, carbs: 32, fat: 22, fiber: 5 },
   },
   {
     id: "pork-free-kebab-bowl",
@@ -858,6 +885,7 @@ const RECIPES = [
       "Serve over rice with salad and sauce.",
     ],
     why: "Familiar takeaway flavors made at home — protein and carbs after matches.",
+    macros: { kcal: 550, protein: 42, carbs: 52, fat: 16, fiber: 5 },
   },
   {
     id: "quinoa-chickpea",
@@ -882,6 +910,7 @@ const RECIPES = [
       "Keep seasoning mild before matches.",
     ],
     why: "Plant carbs and protein that sit well for many athletes before competition.",
+    macros: { kcal: 480, protein: 20, carbs: 62, fat: 14, fiber: 12 },
   },
   {
     id: "avocado-toast-egg",
@@ -905,6 +934,7 @@ const RECIPES = [
       "Add cooked egg; season.",
     ],
     why: "Balanced fats, protein, and carbs for a solid training-day morning.",
+    macros: { kcal: 420, protein: 18, carbs: 34, fat: 24, fiber: 10 },
   },
   {
     id: "pasta-pesto-veg",
@@ -928,6 +958,7 @@ const RECIPES = [
       "Drain; stir in pesto. Keep portions moderate.",
     ],
     why: "Familiar carb meal that's easy to cook the afternoon before a game.",
+    macros: { kcal: 520, protein: 16, carbs: 64, fat: 22, fiber: 6 },
   },
   {
     id: "turkey-meatballs-rice",
@@ -953,6 +984,7 @@ const RECIPES = [
       "Serve over rice with salad.",
     ],
     why: "Lean protein and rice carbs for a solid post-match rebuild without feeling greasy.",
+    macros: { kcal: 540, protein: 40, carbs: 50, fat: 16, fiber: 3 },
   },
   {
     id: "cod-couscous-veg",
@@ -977,6 +1009,7 @@ const RECIPES = [
       "Sauté or steam veg; plate together.",
     ],
     why: "Light fish protein with easy couscous carbs that sit well before evening kick-offs.",
+    macros: { kcal: 450, protein: 36, carbs: 48, fat: 10, fiber: 5 },
   },
   {
     id: "chickpea-pasta-marinara",
@@ -1000,6 +1033,7 @@ const RECIPES = [
       "Warm sauce with garlic; toss together.",
     ],
     why: "Gluten-free carbs plus plant protein — a reliable vegan-friendly pre-match plate.",
+    macros: { kcal: 480, protein: 28, carbs: 58, fat: 12, fiber: 12 },
   },
   {
     id: "breakfast-burrito-bean",
@@ -1024,6 +1058,7 @@ const RECIPES = [
       "Roll tightly; wrap in foil for the commute.",
     ],
     why: "Portable plant protein and carbs for early academy mornings.",
+    macros: { kcal: 420, protein: 16, carbs: 52, fat: 16, fiber: 14 },
   },
   {
     id: "greek-chicken-orzo",
@@ -1047,6 +1082,7 @@ const RECIPES = [
       "Toss with chopped salad veg, oil, lemon, and feta.",
     ],
     why: "Familiar Mediterranean flavors with carbs and protein after tough sessions.",
+    macros: { kcal: 530, protein: 40, carbs: 48, fat: 18, fiber: 4 },
   },
   {
     id: "miso-tofu-rice",
@@ -1071,6 +1107,7 @@ const RECIPES = [
       "Serve over rice with greens.",
     ],
     why: "Savory plant protein and rice to refill after evening training.",
+    macros: { kcal: 470, protein: 26, carbs: 55, fat: 14, fiber: 6 },
   },
   {
     id: "overnight-rice-pudding",
@@ -1094,6 +1131,7 @@ const RECIPES = [
       "Stir and top with fruit before eating cold or warmed.",
     ],
     why: "Uses leftover rice for calm, carb-forward match-morning fuel.",
+    macros: { kcal: 340, protein: 10, carbs: 62, fat: 6, fiber: 3 },
   },
   {
     id: "tuna-avocado-rice",
@@ -1117,6 +1155,7 @@ const RECIPES = [
       "Top with tuna, sliced avocado, cucumber, and a splash of tamari.",
     ],
     why: "Fast gluten-free recovery bowl with fish protein and easy carbs.",
+    macros: { kcal: 460, protein: 34, carbs: 42, fat: 16, fiber: 7 },
   },
   {
     id: "veggie-fried-noodles",
@@ -1140,6 +1179,7 @@ const RECIPES = [
       "Stir-fry veg (and tofu); toss with noodles and sauce — keep salt moderate pre-match.",
     ],
     why: "Familiar carb base that cooks fast the afternoon before a game.",
+    macros: { kcal: 490, protein: 18, carbs: 68, fat: 14, fiber: 6 },
   },
   {
     id: "protein-pancake-berries",
@@ -1163,6 +1203,7 @@ const RECIPES = [
       "Cook small pancakes on a lightly oiled pan; top with berries.",
     ],
     why: "Higher-protein breakfast before double sessions or gym + pitch days.",
+    macros: { kcal: 400, protein: 32, carbs: 38, fat: 12, fiber: 5 },
   },
   {
     id: "lamb-free-shawarma-bowl",
@@ -1186,6 +1227,7 @@ const RECIPES = [
       "Serve over rice with salad and sauce; ease chili if you prefer mild.",
     ],
     why: "Halal-friendly takeaway vibes at home — protein-heavy after weekend matches.",
+    macros: { kcal: 560, protein: 44, carbs: 48, fat: 20, fiber: 5 },
   },
   {
     id: "edamame-rice-snack",
@@ -1209,6 +1251,7 @@ const RECIPES = [
       "Pack with rice and fruit for between sessions.",
     ],
     why: "Plant protein plus carbs when you need something light but filling.",
+    macros: { kcal: 320, protein: 18, carbs: 42, fat: 8, fiber: 8 },
   },
   {
     id: "smoked-salmon-bagel",
@@ -1232,6 +1275,7 @@ const RECIPES = [
       "Layer salmon and cucumber; squeeze lemon.",
     ],
     why: "Quick omega-3 rich breakfast before morning training or travel.",
+    macros: { kcal: 450, protein: 26, carbs: 48, fat: 16, fiber: 3 },
   },
   {
     id: "polenta-mushroom-bowl",
@@ -1255,6 +1299,7 @@ const RECIPES = [
       "Sauté mushrooms with garlic; spoon over polenta.",
     ],
     why: "Comforting gluten-free carbs with savory protein-friendly toppings after cold-weather matches.",
+    macros: { kcal: 420, protein: 14, carbs: 55, fat: 16, fiber: 5 },
   },
   {
     id: "date-oat-energy-bites",
@@ -1278,6 +1323,7 @@ const RECIPES = [
       "Roll into balls; chill 10 minutes.",
     ],
     why: "Make-ahead snack for bus rides — keep portions small before kick-off.",
+    macros: { kcal: 280, protein: 7, carbs: 40, fat: 12, fiber: 5 },
   },
   {
     id: "shrimp-free-fish-tacos",
@@ -1301,6 +1347,7 @@ const RECIPES = [
       "Warm tortillas; fill with fish, slaw, and lime.",
     ],
     why: "Shellfish-free pescatarian recovery meal that still feels like a treat.",
+    macros: { kcal: 440, protein: 32, carbs: 42, fat: 14, fiber: 5 },
   },
   {
     id: "baked-oat-apple",
@@ -1325,6 +1372,7 @@ const RECIPES = [
       "Cool slightly; portion for 2 mornings.",
     ],
     why: "Batch breakfast with slow carbs — easy to reheat on school days.",
+    macros: { kcal: 310, protein: 8, carbs: 58, fat: 6, fiber: 7 },
   },
   {
     id: "beef-stirfry-noodles-gf",
@@ -1348,6 +1396,7 @@ const RECIPES = [
       "Sear beef quickly; add veg and sauce; toss with noodles.",
     ],
     why: "Gluten-free noodle recovery option with iron-rich beef after hard weeks.",
+    macros: { kcal: 530, protein: 36, carbs: 52, fat: 18, fiber: 4 },
   },
   {
     id: "hummus-rice-cake-stack",
@@ -1371,6 +1420,7 @@ const RECIPES = [
       "Eat 1–2 hours before a light technical session if you need a top-up.",
     ],
     why: "Nut-free, gluten-free snack that still gives carbs and plant protein.",
+    macros: { kcal: 260, protein: 8, carbs: 36, fat: 10, fiber: 5 },
   },
 ];
 

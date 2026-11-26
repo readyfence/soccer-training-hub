@@ -1122,6 +1122,24 @@ function viewRecovery() {
     </div>`;
 }
 
+function recipeMacrosLine(m, { short = false } = {}) {
+  if (!m) return "";
+  const fiber = m.fiber != null ? ` · ${m.fiber}g fiber` : "";
+  if (short) {
+    return `~${m.kcal} kcal · ${m.protein}g protein`;
+  }
+  return `~${m.kcal} kcal · ${m.protein}g protein · ${m.carbs}g carbs · ${m.fat}g fat${fiber}`;
+}
+
+function recipeMacrosHtml(m, { compact = false } = {}) {
+  if (!m) return "";
+  const label = compact ? "approx / serving" : "Approx per serving";
+  return `<p class="recipe-macros${compact ? " compact" : ""}" title="${label}">
+    <span class="macros-label">${label}</span>
+    <span class="macros-row">${recipeMacrosLine(m)}</span>
+  </p>`;
+}
+
 function recipeCardHtml(r, { open = false } = {}) {
   const meal = MEAL_TYPES.find((m) => m.id === r.mealType);
   const tags = [
@@ -1139,15 +1157,17 @@ function recipeCardHtml(r, { open = false } = {}) {
           <span>
             <strong>${r.name}</strong>
             <span class="muted">${tags.map((t) => `<span class="tag">${t}</span>`).join(" ")}</span>
+            ${r.macros ? `<span class="recipe-macros-inline muted">${recipeMacrosLine(r.macros)}</span>` : ""}
           </span>
         </span>
       </summary>
       <p class="recipe-why"><strong>Why it helps:</strong> ${r.why}</p>
+      ${recipeMacrosHtml(r.macros)}
       <h4>Ingredients</h4>
       <ul>${r.ingredients.map((i) => `<li>${i}</li>`).join("")}</ul>
       <h4>Steps</h4>
       <ol>${r.steps.map((s) => `<li>${s}</li>`).join("")}</ol>
-      <p class="muted">Home-cook sports nutrition tip — not medical advice.</p>
+      <p class="muted">Home-cook sports nutrition tip — not medical advice. Macro values are approximate.</p>
     </details>`;
 }
 
@@ -1303,6 +1323,20 @@ function todayMealsHtml(plan) {
         <p>No recipes match your filters. <a href="#/nutrition">Relax preferences</a> to see ideas.</p>
       </div>`;
   }
+  const withMacros = suggestions.filter((r) => r.macros);
+  const totals = withMacros.reduce(
+    (acc, r) => {
+      acc.kcal += r.macros.kcal || 0;
+      acc.protein += r.macros.protein || 0;
+      acc.carbs += r.macros.carbs || 0;
+      acc.fat += r.macros.fat || 0;
+      return acc;
+    },
+    { kcal: 0, protein: 0, carbs: 0, fat: 0 }
+  );
+  const totalsNote = withMacros.length
+    ? `<p class="muted nutrition-totals">If you eat all ${withMacros.length} suggestions: ~${totals.kcal} kcal · ${totals.protein}g protein · ${totals.carbs}g carbs · ${totals.fat}g fat <span class="macros-label">(approx)</span></p>`
+    : "";
   return `
     <div class="card nutrition-today">
       <h3>🍽️ Suggested meals ${meal ? `· ${meal.label}` : ""}</h3>
@@ -1311,9 +1345,10 @@ function todayMealsHtml(plan) {
         ${suggestions.map((r) => `
           <a class="nutrition-chip" href="#/nutrition/${r.id}">
             <span>${r.icon}</span>
-            <span><strong>${r.name}</strong><br/><span class="muted">${r.minutes} min</span></span>
+            <span><strong>${r.name}</strong><br/><span class="muted">${r.minutes} min${r.macros ? ` · ${recipeMacrosLine(r.macros, { short: true })}` : ""}</span></span>
           </a>`).join("")}
       </div>
+      ${totalsNote}
     </div>`;
 }
 

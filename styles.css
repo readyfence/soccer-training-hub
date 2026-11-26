@@ -395,6 +395,35 @@ button.card.pick.current { border-color: var(--accent); }
   align-items: flex-start;
 }
 .recipe-summary .icon { font-size: 1.8rem; line-height: 1; }
+.recipe-macros-inline {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+.recipe-macros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+  margin: 10px 0 14px;
+  padding: 8px 12px;
+  background: #f3f7f4;
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+.recipe-macros .macros-row { font-weight: 600; }
+.macros-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #5a6b60;
+  font-weight: 600;
+}
+.nutrition-totals {
+  margin-top: 12px;
+  font-size: 0.9rem;
+}
 .recipe-why {
   background: var(--green-light);
   padding: 10px 12px;
