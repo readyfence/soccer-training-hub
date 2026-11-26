@@ -323,7 +323,8 @@ button.card.pick.current { border-color: var(--accent); }
   background: #fff;
 }
 .nutrition-chip:hover { border-color: var(--green); }
-.nutrition-chip span:first-child { font-size: 1.6rem; }
+.nutrition-chip .chip-icon { font-size: 1.6rem; line-height: 1; }
+.nutrition-chip .chip-body { flex: 1; min-width: 0; }
 .nutrition-form fieldset, .nutrition-profile fieldset {
   border: none;
   padding: 0;
@@ -395,24 +396,78 @@ button.card.pick.current { border-color: var(--accent); }
   align-items: flex-start;
 }
 .recipe-summary .icon { font-size: 1.8rem; line-height: 1; }
+.recipe-summary-text {
+  flex: 1;
+  min-width: 0;
+}
 .recipe-macros-inline {
   display: block;
-  margin-top: 4px;
-  font-size: 0.9rem;
-  line-height: 1.35;
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: #f3f7f4;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: #1a2e22;
+}
+.recipe-macros-inline .macros-label {
+  display: block;
+  margin-bottom: 4px;
 }
 .recipe-macros {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px 10px;
   margin: 10px 0 14px;
-  padding: 8px 12px;
+  padding: 10px 12px;
   background: #f3f7f4;
   border-radius: 10px;
   font-size: 0.95rem;
 }
-.recipe-macros .macros-row { font-weight: 600; }
+.recipe-macros .macros-label {
+  margin: 0 0 6px;
+}
+.recipe-macros .macros-abbrev {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+}
+.macros-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px 12px;
+}
+@media (min-width: 360px) {
+  .macros-list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.macros-list li {
+  margin: 0;
+  line-height: 1.35;
+}
+.macro-name {
+  color: #3d5246;
+  font-weight: 600;
+}
+.macro-value {
+  font-weight: 700;
+  color: #122018;
+}
+.macros-list-inline {
+  font-size: 0.88rem;
+}
+.macros-list-chip {
+  margin-top: 6px;
+  grid-template-columns: 1fr;
+  gap: 2px;
+  font-size: 0.82rem;
+}
+@media (min-width: 420px) {
+  .macros-list-chip {
+    grid-template-columns: 1fr 1fr;
+    gap: 2px 10px;
+  }
+}
 .macros-label {
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -422,7 +477,21 @@ button.card.pick.current { border-color: var(--accent); }
 }
 .nutrition-totals {
   margin-top: 12px;
+  padding: 10px 12px;
+  background: #f3f7f4;
+  border-radius: 10px;
   font-size: 0.9rem;
+}
+.nutrition-totals .macros-label {
+  margin: 0 0 6px;
+}
+.nutrition-chip .chip-meta {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.85rem;
+}
+.recipe-card[open] .recipe-macros-inline {
+  display: none;
 }
 .recipe-why {
   background: var(--green-light);

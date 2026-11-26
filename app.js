@@ -1122,22 +1122,64 @@ function viewRecovery() {
     </div>`;
 }
 
+function recipeMacrosParts(m) {
+  if (!m) return [];
+  const parts = [
+    { label: "Calories", value: `~${m.kcal}` },
+    { label: "Protein", value: `${m.protein} grams` },
+    { label: "Carbs", value: `${m.carbs} grams` },
+    { label: "Fat", value: `${m.fat} grams` },
+  ];
+  if (m.fiber != null) {
+    parts.push({ label: "Fiber", value: `${m.fiber} grams` });
+  }
+  return parts;
+}
+
+/** Human-readable macros, e.g. "Calories: ~450 · Protein: 28 grams · …" */
 function recipeMacrosLine(m, { short = false } = {}) {
   if (!m) return "";
-  const fiber = m.fiber != null ? ` · ${m.fiber}g fiber` : "";
   if (short) {
-    return `~${m.kcal} kcal · ${m.protein}g protein`;
+    return `Calories: ~${m.kcal} · Protein: ${m.protein} grams`;
   }
+  return recipeMacrosParts(m)
+    .map((p) => `${p.label}: ${p.value}`)
+    .join(" · ");
+}
+
+/** Compact abbreviated secondary form, e.g. "~450 kcal · 28g protein" */
+function recipeMacrosShortCode(m) {
+  if (!m) return "";
+  const fiber = m.fiber != null ? ` · ${m.fiber}g fiber` : "";
   return `~${m.kcal} kcal · ${m.protein}g protein · ${m.carbs}g carbs · ${m.fat}g fat${fiber}`;
+}
+
+function recipeMacrosListHtml(m, { className = "macros-list" } = {}) {
+  if (!m) return "";
+  return `<ul class="${className}">${recipeMacrosParts(m)
+    .map(
+      (p) =>
+        `<li><span class="macro-name">${p.label}:</span> <span class="macro-value">${p.value}</span></li>`
+    )
+    .join("")}</ul>`;
 }
 
 function recipeMacrosHtml(m, { compact = false } = {}) {
   if (!m) return "";
-  const label = compact ? "approx / serving" : "Approx per serving";
-  return `<p class="recipe-macros${compact ? " compact" : ""}" title="${label}">
-    <span class="macros-label">${label}</span>
-    <span class="macros-row">${recipeMacrosLine(m)}</span>
-  </p>`;
+  const label = compact ? "Approx / serving" : "Approx per serving";
+  return `<div class="recipe-macros${compact ? " compact" : ""}" title="${label}">
+    <p class="macros-label">${label}</p>
+    ${recipeMacrosListHtml(m)}
+    <p class="macros-abbrev muted">${recipeMacrosShortCode(m)}</p>
+  </div>`;
+}
+
+function recipeMacrosInlineHtml(m) {
+  if (!m) return "";
+  return `<div class="recipe-macros-inline">
+    <span class="macros-label">Approx per serving</span>
+    ${recipeMacrosListHtml(m, { className: "macros-list macros-list-inline" })}
+  </div>`;
 }
 
 function recipeCardHtml(r, { open = false } = {}) {
@@ -1152,14 +1194,14 @@ function recipeCardHtml(r, { open = false } = {}) {
   return `
     <details class="card recipe-card" ${open ? "open" : ""} id="recipe-${r.id}">
       <summary>
-        <span class="recipe-summary">
+        <div class="recipe-summary">
           <span class="icon">${r.icon}</span>
-          <span>
+          <div class="recipe-summary-text">
             <strong>${r.name}</strong>
             <span class="muted">${tags.map((t) => `<span class="tag">${t}</span>`).join(" ")}</span>
-            ${r.macros ? `<span class="recipe-macros-inline muted">${recipeMacrosLine(r.macros)}</span>` : ""}
-          </span>
-        </span>
+            ${recipeMacrosInlineHtml(r.macros)}
+          </div>
+        </div>
       </summary>
       <p class="recipe-why"><strong>Why it helps:</strong> ${r.why}</p>
       ${recipeMacrosHtml(r.macros)}
@@ -1335,7 +1377,10 @@ function todayMealsHtml(plan) {
     { kcal: 0, protein: 0, carbs: 0, fat: 0 }
   );
   const totalsNote = withMacros.length
-    ? `<p class="muted nutrition-totals">If you eat all ${withMacros.length} suggestions: ~${totals.kcal} kcal · ${totals.protein}g protein · ${totals.carbs}g carbs · ${totals.fat}g fat <span class="macros-label">(approx)</span></p>`
+    ? `<div class="nutrition-totals">
+        <p class="macros-label">If you eat all ${withMacros.length} suggestions (approx)</p>
+        ${recipeMacrosListHtml(totals)}
+      </div>`
     : "";
   return `
     <div class="card nutrition-today">
@@ -1344,8 +1389,12 @@ function todayMealsHtml(plan) {
       <div class="nutrition-suggest">
         ${suggestions.map((r) => `
           <a class="nutrition-chip" href="#/nutrition/${r.id}">
-            <span>${r.icon}</span>
-            <span><strong>${r.name}</strong><br/><span class="muted">${r.minutes} min${r.macros ? ` · ${recipeMacrosLine(r.macros, { short: true })}` : ""}</span></span>
+            <span class="chip-icon">${r.icon}</span>
+            <div class="chip-body">
+              <strong>${r.name}</strong>
+              <span class="chip-meta muted">${r.minutes} min</span>
+              ${r.macros ? recipeMacrosListHtml(r.macros, { className: "macros-list macros-list-chip" }) : ""}
+            </div>
           </a>`).join("")}
       </div>
       ${totalsNote}
